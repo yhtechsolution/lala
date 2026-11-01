@@ -1,0 +1,18 @@
+{
+  "name": "lala-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Firebase security rules and rules tests for the Lala guesthouse platform",
+  "type": "module",
+  "scripts": {
+    "emulators": "firebase emulators:start --only firestore",
+    "test": "firebase emulators:exec --only firestore --project demo-lala \"vitest run\"",
+    "deploy:rules": "firebase deploy --only firestore:rules,storage"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^4.0.1",
+    "firebase": "^11.0.0",
+    "firebase-tools": "^14.0.0",
+    "vitest": "^2.1.0"
+  }
+}

@@ -1,0 +1,16 @@
+# Crawler instructions: explicitly named bots and all other agents may crawl every path.
+# These rules guide crawlers; they do not implement authentication or access restrictions.
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: *
+Allow: /

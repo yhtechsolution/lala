@@ -1,0 +1,192 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- Helpers ----------
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // A user is an admin when admins/<their uid> exists.
+    function isAdmin() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // True when none of the listed fields differ between the stored and incoming document.
+    function untouched(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+
+    // ---------- Rating integrity ----------
+    // A customer may only change a guesthouse's rating summary together with writing
+    // their own rating document in the SAME transaction. These helpers compare the
+    // state before (exists / get) with the state after (existsAfter / getAfter).
+
+    function ratingPath(guesthouseId, uid) {
+      return /databases/$(database)/documents/ratings/$(guesthouseId + '_' + uid);
+    }
+
+    function oldScore(guesthouseId, uid) {
+      return exists(ratingPath(guesthouseId, uid))
+        ? get(ratingPath(guesthouseId, uid)).data.score
+        : 0;
+    }
+
+    function addedCount(guesthouseId, uid) {
+      return exists(ratingPath(guesthouseId, uid)) ? 0 : 1;
+    }
+
+    // True when the guesthouse summary after the write equals the summary before
+    // the write adjusted by this customer's new score.
+    function summaryMatchesRating(guesthouseId, uid) {
+      let before = get(/databases/$(database)/documents/guesthouses/$(guesthouseId)).data;
+      let after = getAfter(/databases/$(database)/documents/guesthouses/$(guesthouseId)).data;
+      let score = getAfter(ratingPath(guesthouseId, uid)).data.score;
+      return after.ratingCount == before.ratingCount + addedCount(guesthouseId, uid)
+        && after.ratingSum == before.ratingSum - oldScore(guesthouseId, uid) + score
+        && after.ratingCount > 0
+        && math.abs(after.averageRating - after.ratingSum / after.ratingCount) < 0.0001;
+    }
+
+    // ---------- Guesthouses ----------
+
+    function validGuesthouse(d) {
+      return d.keys().hasAll([
+          'name', 'nameLower', 'logoUrl', 'galleryUrls', 'description', 'amenities',
+          'location', 'pricePerNight', 'city', 'cityLower', 'country', 'contact',
+          'averageRating', 'ratingCount', 'ratingSum', 'createdAt', 'createdBy'
+        ])
+        && d.name is string && d.name.size() > 0
+        && d.nameLower == d.name.lower()
+        && d.city is string && d.city.size() > 0
+        && d.cityLower == d.city.lower()
+        && d.country is string && d.country.size() > 0
+        && d.description is string && d.description.size() > 0
+        && d.logoUrl is string
+        && d.galleryUrls is list
+        && d.amenities is list
+        && d.pricePerNight is number && d.pricePerNight >= 0
+        && d.location.lat is number && d.location.lat >= -90 && d.location.lat <= 90
+        && d.location.lng is number && d.location.lng >= -180 && d.location.lng <= 180
+        && d.contact is map
+        // Optional Setswana description written or reviewed by an admin.
+        && (!('descriptionTn' in d)
+          || (d.descriptionTn is string && d.descriptionTn.size() <= 2000))
+        // Optional visibility. Missing means published, so older listings keep working.
+        && (!('status' in d) || d.status in ['published', 'draft', 'hidden']);
+    }
+
+    match /guesthouses/{guesthouseId} {
+      allow read: if true;
+
+      // New listings must be complete and start with an empty rating summary.
+      allow create: if isAdmin()
+        && validGuesthouse(request.resource.data)
+        && request.resource.data.ratingCount == 0
+        && request.resource.data.ratingSum == 0
+        && request.resource.data.averageRating == 0
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.createdAt == request.time;
+
+      allow delete: if isAdmin();
+
+      // Admins edit listing details but never the rating summary or creation metadata.
+      // Customers change only the rating summary, and only alongside their own rating.
+      allow update: if
+        (isAdmin()
+          && untouched(['ratingSum', 'ratingCount', 'averageRating', 'createdAt', 'createdBy'])
+          && validGuesthouse(request.resource.data))
+        ||
+        (isSignedIn()
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['ratingSum', 'ratingCount', 'averageRating'])
+          && existsAfter(ratingPath(guesthouseId, request.auth.uid))
+          && summaryMatchesRating(guesthouseId, request.auth.uid));
+    }
+
+    // ---------- Admins ----------
+
+    match /admins/{uid} {
+      allow read: if isAdmin() || isOwner(uid);
+
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(['email', 'displayName', 'createdAt', 'createdBy'])
+        && request.resource.data.email is string
+        && request.resource.data.displayName is string
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.createdBy == request.auth.uid;
+
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName']);
+
+      allow delete: if false;
+    }
+
+    // ---------- Customers ----------
+
+    match /customers/{uid} {
+      allow read: if isOwner(uid);
+
+      allow create: if isOwner(uid)
+        && request.resource.data.keys().hasOnly(['email', 'displayName', 'createdAt'])
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() > 0
+        && request.resource.data.createdAt == request.time;
+
+      allow update: if isOwner(uid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName'])
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() > 0;
+
+      allow delete: if false;
+
+      match /favourites/{guesthouseId} {
+        allow read, delete: if isOwner(uid);
+
+        allow create, update: if isOwner(uid)
+          && request.resource.data.keys().hasOnly(['guesthouseId', 'addedAt'])
+          && request.resource.data.guesthouseId == guesthouseId
+          && request.resource.data.addedAt == request.time
+          && exists(/databases/$(database)/documents/guesthouses/$(guesthouseId));
+      }
+    }
+
+    // ---------- Ratings ----------
+
+    match /ratings/{ratingId} {
+      allow read: if true;
+
+      // One rating per customer per guesthouse: the document ID encodes both.
+      function validRating() {
+        let d = request.resource.data;
+        return d.keys().hasOnly(['guesthouseId', 'customerId', 'score', 'createdAt', 'updatedAt'])
+          && d.customerId == request.auth.uid
+          && ratingId == d.guesthouseId + '_' + request.auth.uid
+          && d.score is int && d.score >= 1 && d.score <= 5
+          && d.updatedAt == request.time
+          && exists(/databases/$(database)/documents/guesthouses/$(d.guesthouseId))
+          // Only published listings can be rated; drafts and hidden ones are not visible to customers.
+          && get(/databases/$(database)/documents/guesthouses/$(d.guesthouseId)).data.get('status', 'published') == 'published'
+          && summaryMatchesRating(d.guesthouseId, request.auth.uid);
+      }
+
+      allow create: if isSignedIn()
+        && validRating()
+        && request.resource.data.createdAt == request.time;
+
+      allow update: if isSignedIn()
+        && validRating()
+        && request.resource.data.createdAt == resource.data.createdAt;
+
+      allow delete: if false;
+    }
+  }
+}

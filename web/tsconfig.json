@@ -1,0 +1,42 @@
+// TypeScript project settings. Comments are supported by tsconfig (JSONC).
+{
+  // Files included in compiler checks; installed dependencies are resolved through imports.
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "eslint.config.js"
+  ],
+  // Compile against modern JavaScript/browser APIs; JSX uses the React automatic runtime.
+  "compilerOptions": {
+    "target": "ES2022",
+    "jsx": "react-jsx",
+    "module": "ESNext",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["vite/client", "vitest/globals"],
+
+    // Bundler resolution mirrors Vite. noEmit makes this config check types without writing JS.
+    "moduleResolution": "Bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": false,
+    "noEmit": true,
+
+    // Skip dependency declaration checking, but retain strict checking for application code.
+    "skipLibCheck": true,
+    "strict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noUncheckedSideEffectImports": true,
+    // Maps @/ imports to src for type resolution; Vite/Vitest configure runtime resolution.
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  }
+}
