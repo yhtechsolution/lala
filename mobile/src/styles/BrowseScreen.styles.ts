@@ -1,5 +1,5 @@
 
-import { alpha, makeThemedStyles, shadows } from '../theme';
+import { makeThemedStyles, shadows } from '../theme';
 
 export const styles = makeThemedStyles((colors) => ({
   safeArea: {
@@ -8,7 +8,7 @@ export const styles = makeThemedStyles((colors) => ({
   },
   header: {
     alignItems: 'center',
-    backgroundColor: alpha(colors.background, 0.98),
+    backgroundColor: colors.background,
     flexDirection: 'row',
     height: 64,
     justifyContent: 'space-between',
@@ -22,7 +22,7 @@ export const styles = makeThemedStyles((colors) => ({
     gap: 8,
   },
   logo: {
-    borderRadius: 12,
+    borderRadius: 18,
     height: 36,
     width: 36,
   },
@@ -53,7 +53,7 @@ export const styles = makeThemedStyles((colors) => ({
   profileButton: {
     alignItems: 'center',
     backgroundColor: colors.primaryFill,
-    borderRadius: 16,
+    borderRadius: 999,
     height: 32,
     justifyContent: 'center',
     width: 32,
@@ -62,18 +62,18 @@ export const styles = makeThemedStyles((colors) => ({
     paddingBottom: 32,
   },
   horizontalPadding: {
-    gap: 16,
+    gap: 10,
     paddingHorizontal: 20,
     paddingTop: 8,
   },
   locationCard: {
     alignItems: 'center',
     backgroundColor: colors.surface,
-    borderRadius: 12,
+    borderRadius: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    minHeight: 68,
-    padding: 14,
+    minHeight: 60,
+    padding: 12,
     ...shadows.soft,
   },
   locationMain: {
@@ -84,7 +84,7 @@ export const styles = makeThemedStyles((colors) => ({
   locationIcon: {
     alignItems: 'center',
     backgroundColor: colors.iconSurface,
-    borderRadius: 8,
+    borderRadius: 12,
     height: 36,
     justifyContent: 'center',
     width: 36,
@@ -129,9 +129,9 @@ export const styles = makeThemedStyles((colors) => ({
   searchBar: {
     alignItems: 'center',
     backgroundColor: colors.surface,
-    borderRadius: 12,
+    borderRadius: 999,
     flexDirection: 'row',
-    height: 48,
+    height: 46,
     paddingHorizontal: 14,
     ...shadows.soft,
   },
@@ -147,12 +147,28 @@ export const styles = makeThemedStyles((colors) => ({
   filterButton: {
     alignItems: 'center',
     backgroundColor: colors.blueSurface,
-    borderRadius: 8,
+    borderRadius: 18,
     height: 36,
     justifyContent: 'center',
-    marginLeft: 8,
+    marginLeft: 4,
     width: 36,
   },
+  smartSearchAction: {
+    alignItems: 'center',
+    backgroundColor: colors.blueChip,
+    borderRadius: 999,
+    flexDirection: 'row',
+    gap: 4,
+    minHeight: 32,
+    paddingHorizontal: 8,
+  },
+  smartSearchActionSelected: { backgroundColor: colors.primaryFill },
+  smartSearchActionText: {
+    color: colors.primaryDark,
+    fontFamily: 'PlusJakartaSans_600SemiBold',
+    fontSize: 11,
+  },
+  smartSearchActionTextSelected: { color: colors.white },
   sectionHeadingRow: {
     alignItems: 'flex-start',
     flexDirection: 'row',
@@ -163,7 +179,7 @@ export const styles = makeThemedStyles((colors) => ({
   sectionTitle: {
     color: colors.text,
     fontFamily: 'PlusJakartaSans_600SemiBold',
-    fontSize: 18,
+    fontSize: 19,
     lineHeight: 26,
   },
   sectionDot: {
@@ -180,7 +196,7 @@ export const styles = makeThemedStyles((colors) => ({
     lineHeight: 16,
   },
   seeAll: {
-    color: colors.primaryDark,
+    color: colors.accent,
     fontFamily: 'PlusJakartaSans_600SemiBold',
     fontSize: 12,
     marginTop: 5,
@@ -193,7 +209,7 @@ export const styles = makeThemedStyles((colors) => ({
   emptyState: {
     alignItems: 'center',
     backgroundColor: colors.surface,
-    borderRadius: 12,
+    borderRadius: 22,
     marginHorizontal: 20,
     marginTop: 12,
     padding: 28,

@@ -1,9 +1,11 @@
+import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
   Linking,
+  PanResponder,
   Pressable,
   ScrollView,
   Share,
@@ -12,7 +14,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AuthIcon } from '../../components/AuthIcon';
-import { SearchIcon } from '../../components/SearchIcon';
 import { DetailIcon, DetailIconName } from '../../components/DetailIcon';
 import {
   CustomerNotice,
@@ -20,6 +21,8 @@ import {
 } from '../../components/CustomerNotice';
 import { RatingSheet } from '../../components/RatingSheet';
 import { ConnectionNotice } from '../../components/ConnectionNotice';
+import { ContactGuesthouseSheet } from '../../components/ContactGuesthouseSheet';
+import { LeafletMap } from '../../components/LeafletMap';
 import { useAuth } from '../../context/AuthContext';
 import { useFavourites } from '../../context/FavouritesContext';
 import { useGuesthouseDetails } from '../../hooks/useGuesthouseDetails';
@@ -29,6 +32,7 @@ import { recordView } from '../../services/recentlyViewed';
 import { similarGuesthouses } from '../../services/similar';
 import { GuesthouseDetails } from '../../services/guesthouseDetails';
 import { engagementErrorMessage } from '../../services/customerEngagement';
+import { selectionFeedback } from '../../services/selectionFeedback';
 import { styles } from '../../styles/GuesthouseDetails.styles';
 import { styles as header } from '../../styles/SearchScreen.styles';
 import { colors } from '../../theme';
@@ -83,12 +87,29 @@ function DetailContent({
     () => similarGuesthouses(g, everyGuesthouse, 3),
     [g, everyGuesthouse],
   );
+  const [contactOpen, setContactOpen] = useState(false);
+  const [mapFailed, setMapFailed] = useState(false);
+  const advancePhoto = (direction: number) => {
+    if (photos.length < 2) return;
+    selectionFeedback();
+    setPhoto((current) => (current + direction + photos.length) % photos.length);
+  };
+  const photoSwipe = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponderCapture: (_, gesture) =>
+          photos.length > 1 &&
+          Math.abs(gesture.dx) > 14 &&
+          Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.2,
+        onPanResponderRelease: (_, gesture) => {
+          if (gesture.dx < -45) advancePhoto(1);
+          if (gesture.dx > 45) advancePhoto(-1);
+        },
+      }),
+    [photos.length],
+  );
   const { user, initializing } = useAuth();
   const favourites = useFavourites();
-  const scroll = useRef<ScrollView>(null);
-  const contactY = useRef(0);
-  const heroHeight = useRef(0);
-  const contentY = useRef(0);
   const index = Math.min(photo, Math.max(0, photos.length - 1));
   const uri = photos[index];
   const price = `P ${g.pricePerNight.toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
@@ -100,10 +121,21 @@ function DetailContent({
     : address
       ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
       : null;
+  const directionsUrl = g.location
+    ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${g.location.lat},${g.location.lng}`)}&dir_action=navigate`
+    : null;
+  const mapListing = useMemo(
+    () =>
+      g.location
+        ? [{ id: g.id, name: g.name, pricePerNight: g.pricePerNight, location: g.location }]
+        : [],
+    [g.id, g.name, g.pricePerNight, g.location?.lat, g.location?.lng],
+  );
   const saved = favourites.ids.includes(g.id);
+  const saving = favourites.pending.includes(g.id);
   const busy =
     initializing ||
-    favourites.pending.includes(g.id) ||
+    saving ||
     (Boolean(user) && favourites.loading);
   // External actions report unsupported handlers instead of leaving rejected promises.
   async function open(url: string) {
@@ -126,6 +158,7 @@ function DetailContent({
       return;
     }
     try {
+      selectionFeedback();
       await favourites.toggle(g.id);
     } catch (error) {
       setNotice({
@@ -150,27 +183,24 @@ function DetailContent({
   }
   return (
     <>
-      <ScrollView ref={scroll} contentContainerStyle={styles.scroll}>
-        <View
-          style={styles.hero}
-          onLayout={(event) => {
-            heroHeight.current = event.nativeEvent.layout.height;
-          }}
-        >
-          {uri && !failed.includes(uri) ? (
-            <Image
-              source={{ uri }}
-              style={styles.photo}
-              resizeMode="cover"
-              accessibilityLabel={`${g.name} photo ${index + 1}`}
-              onError={() => setFailed((items) => [...items, uri])}
-            />
-          ) : (
-            <View style={styles.fallback}>
-              <DetailIcon name="photos" />
-              <Text style={styles.small}>Photo unavailable</Text>
-            </View>
-          )}
+      <ScrollView contentContainerStyle={styles.scroll}>
+        <View style={styles.hero}>
+          <View style={styles.heroPhoto} {...photoSwipe.panHandlers}>
+            {uri && !failed.includes(uri) ? (
+              <Image
+                source={{ uri }}
+                style={styles.photo}
+                resizeMode="cover"
+                accessibilityLabel={`${g.name} photo ${index + 1}`}
+                onError={() => setFailed((items) => [...items, uri])}
+              />
+            ) : (
+              <View style={styles.fallback}>
+                <DetailIcon name="photos" />
+                <Text style={styles.small}>Photo unavailable</Text>
+              </View>
+            )}
+          </View>
           <View style={styles.heroControls}>
             <Pressable
               accessibilityRole="button"
@@ -194,12 +224,24 @@ function DetailContent({
                 accessibilityLabel={
                   saved ? 'Remove from favourites' : 'Save to favourites'
                 }
-                accessibilityState={{ selected: saved, disabled: busy }}
+                accessibilityState={{ selected: saved, busy: saving, disabled: busy }}
                 disabled={busy}
-                style={[styles.circle, saved && styles.saved]}
+                style={({ pressed }) => [
+                  styles.circle,
+                  saved && styles.saved,
+                  pressed && styles.circlePressed,
+                ]}
                 onPress={save}
               >
-                <DetailIcon name="heart" />
+                {saving ? (
+                  <ActivityIndicator color={colors.primary} size="small" />
+                ) : (
+                  <Ionicons
+                    color={saved ? colors.primary : colors.primaryDark}
+                    name={saved ? 'heart' : 'heart-outline'}
+                    size={21}
+                  />
+                )}
               </Pressable>
             </View>
           </View>
@@ -216,18 +258,13 @@ function DetailContent({
               accessibilityRole="button"
               accessibilityLabel="Next guesthouse photo"
               style={styles.next}
-              onPress={() => setPhoto((index + 1) % photos.length)}
+              onPress={() => advancePhoto(1)}
             >
               <Text style={styles.link}>Next photo →</Text>
             </Pressable>
           )}
         </View>
-        <View
-          style={styles.content}
-          onLayout={(event) => {
-            contentY.current = event.nativeEvent.layout.y;
-          }}
-        >
+        <View style={styles.content}>
           {cached && (
             <ConnectionNotice
               message="Showing saved guesthouse details. Check your connection to refresh."
@@ -361,33 +398,67 @@ function DetailContent({
             </View>
           </View>
           <View style={styles.section}>
-            <Text style={styles.heading}>Location & Surroundings</Text>
-            <View style={styles.location}>
-              <View style={styles.row}>
-                <DetailIcon name="pin" />
-                <Text style={[styles.body, styles.flex]}>
-                  {address || 'Location not provided'}
-                </Text>
-              </View>
-              <Text selectable style={styles.small}>
-                {g.location
-                  ? `${g.location.lat}, ${g.location.lng}`
-                  : 'Exact coordinates have not been provided.'}
-              </Text>
-              {mapUrl && (
+            <View style={styles.between}>
+              <Text style={styles.heading}>Location & Surroundings</Text>
+              <Text style={styles.small}>{g.city}</Text>
+            </View>
+            {g.location && !mapFailed ? (
+              <View style={styles.detailMap}>
+                <LeafletMap
+                  height={176}
+                  listings={mapListing}
+                  selectedId={g.id}
+                  onError={() => setMapFailed(true)}
+                />
                 <Pressable
                   accessibilityRole="link"
                   accessibilityLabel="Open guesthouse location in maps"
-                  style={styles.mapAction}
-                  onPress={() => open(mapUrl)}
+                  onPress={() => mapUrl && open(mapUrl)}
+                  style={styles.mapOverlay}
                 >
-                  <Text style={[styles.link, styles.flex]}>
-                    Open location in maps
-                  </Text>
+                  <DetailIcon name="pin" />
+                  <View style={styles.flex}>
+                    <Text numberOfLines={1} style={styles.mapOverlayTitle}>
+                      {address || g.name}
+                    </Text>
+                    <Text style={styles.small}>Open location in maps</Text>
+                  </View>
                   <DetailIcon name="external" />
                 </Pressable>
-              )}
-            </View>
+              </View>
+            ) : (
+              <View style={styles.location}>
+                <Text style={styles.body}>
+                  {address || 'Location not provided'}
+                </Text>
+                <Text style={styles.small}>
+                  {mapFailed
+                    ? 'The map is unavailable right now.'
+                    : 'Exact coordinates have not been provided.'}
+                </Text>
+                {mapUrl && (
+                  <Pressable
+                    accessibilityRole="link"
+                    accessibilityLabel="Open guesthouse location in maps"
+                    style={styles.mapAction}
+                    onPress={() => open(mapUrl)}
+                  >
+                    <Text style={[styles.link, styles.flex]}>Open location in maps</Text>
+                    <DetailIcon name="external" />
+                  </Pressable>
+                )}
+              </View>
+            )}
+            {directionsUrl && (
+              <Pressable
+                accessibilityRole="link"
+                accessibilityLabel={`Get directions to ${g.name}`}
+                onPress={() => open(directionsUrl)}
+                style={styles.directionsButton}
+              >
+                <Text style={styles.directionsText}>Get Directions</Text>
+              </Pressable>
+            )}
           </View>
           {similar.length > 0 && (
             <View style={styles.section}>
@@ -397,12 +468,7 @@ function DetailContent({
               ))}
             </View>
           )}
-          <View
-            style={styles.section}
-            onLayout={(event) => {
-              contactY.current = event.nativeEvent.layout.y;
-            }}
-          >
+          <View style={styles.section}>
             <Text style={styles.heading}>Contact Guesthouse</Text>
             <View style={styles.panel}>
               {Object.entries(g.contact).length ? (
@@ -486,18 +552,19 @@ function DetailContent({
           accessibilityRole="button"
           accessibilityLabel="Contact Guesthouse"
           style={styles.button}
-          onPress={() =>
-            scroll.current?.scrollTo({
-              y: (contentY.current || heroHeight.current) + contactY.current,
-              animated: true,
-            })
-          }
+          onPress={() => setContactOpen(true)}
         >
           <DetailIcon name="contact" />
           <Text style={styles.buttonText}>Contact Guesthouse</Text>
         </Pressable>
       </View>
       <CustomerNotice notice={notice} onClose={() => setNotice(null)} />
+      <ContactGuesthouseSheet
+        guesthouse={g}
+        visible={contactOpen}
+        onClose={() => setContactOpen(false)}
+        onOpen={(url) => void open(url)}
+      />
       {ratingOpen && (
         <RatingSheet guesthouse={g} onClose={() => setRatingOpen(false)} />
       )}
@@ -516,8 +583,9 @@ export default function GuesthouseDetailScreen() {
       <View style={header.header}>
         <View style={header.row}>
           <Image
-            source={require('../../../assets/search/logo.png')}
+            source={require('../../../assets/lala-house-mark.png')}
             style={header.logo}
+            resizeMode="contain"
             accessibilityLabel="Lala logo"
           />
           <View>
@@ -526,14 +594,6 @@ export default function GuesthouseDetailScreen() {
           </View>
         </View>
         <View style={header.row}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Open filters"
-            style={header.back}
-            onPress={() => router.push('/search?filters=true')}
-          >
-            <SearchIcon name="headerFilter" />
-          </Pressable>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Open profile"

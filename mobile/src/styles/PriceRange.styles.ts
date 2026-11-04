@@ -10,7 +10,7 @@ export const styles = makeThemedStyles((colors) => ({
   },
   bin: {
     flex: 1,
-    backgroundColor: colors.track,
+    backgroundColor: colors.border,
     borderTopLeftRadius: 2,
     borderTopRightRadius: 2,
   },
@@ -20,7 +20,7 @@ export const styles = makeThemedStyles((colors) => ({
     marginTop: 16,
     height: 6,
     borderRadius: 999,
-    backgroundColor: colors.track,
+    backgroundColor: colors.border,
     position: 'relative',
   },
   selection: {
@@ -36,7 +36,7 @@ export const styles = makeThemedStyles((colors) => ({
     height: 24,
     marginLeft: -12,
     borderRadius: 12,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.card,
     alignItems: 'center',
     justifyContent: 'center',
     boxShadow: '0px 2px 4px rgba(0,0,0,0.15)',

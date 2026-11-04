@@ -28,8 +28,15 @@ export const styles = makeThemedStyles((colors) => ({
     paddingBottom: 2,
   },
   deck: { height: 198, marginTop: 16 },
+  frontCard: {
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
   backCardFar: {
-    backgroundColor: colors.iconSurface,
+    backgroundColor: colors.quietSurface,
     borderRadius: 20,
     bottom: 0,
     left: 20,
@@ -39,8 +46,8 @@ export const styles = makeThemedStyles((colors) => ({
     transform: [{ rotate: '2deg' }],
   },
   backCardNear: {
-    backgroundColor: colors.blueChip,
-    borderRadius: 20,
+    backgroundColor: colors.iconSurface,
+    borderRadius: 24,
     bottom: 8,
     left: 10,
     position: 'absolute',
@@ -61,6 +68,7 @@ export const styles = makeThemedStyles((colors) => ({
     top: 0,
     ...shadows.card,
   },
+  selectedCard: { borderColor: colors.accent, borderWidth: 2 },
   pressed: { opacity: 0.88 },
   cardTop: {
     alignItems: 'center',

@@ -25,10 +25,11 @@ export type GuesthouseSearch = {
 };
 
 // Only published listings are shown to customers. A missing status means published, so
-// listings created before the status field existed stay visible; draft, hidden and any
-// unrecognised value are kept out of every list and screen.
+// listings created before the status field existed stay visible, and "active" is the older
+// name for published. Draft, hidden, suspended and any unrecognised value are kept out of
+// every list and screen.
 export function isPublished(status: unknown) {
-  return status === undefined || status === 'published';
+  return status === undefined || status === 'published' || status === 'active';
 }
 
 // Accept only real map positions; anything else is treated as "no location".
@@ -42,6 +43,11 @@ export function readCoordinates(value: unknown): Coordinates | null {
     Math.abs(lng) <= 180
     ? { lat, lng }
     : null;
+}
+
+// Compare amenity names without case, spaces or dashes, so "Wi-Fi" and "WiFi" match.
+export function amenityKey(value: string) {
+  return value.trim().toLowerCase().replace(/[\s-]+/g, '');
 }
 
 // Great-circle distance in kilometres (haversine formula).
@@ -79,8 +85,8 @@ export function sortAndFilterGuesthouses(
     )
     .filter((item) =>
       (options.amenities ?? []).every((wanted) =>
-        (item.amenities ?? []).some((offered) =>
-          offered.toLowerCase().includes(wanted.toLowerCase()),
+        (item.amenities ?? []).some(
+          (offered) => amenityKey(offered) === amenityKey(wanted),
         ),
       ),
     )

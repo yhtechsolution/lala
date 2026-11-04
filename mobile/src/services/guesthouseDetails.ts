@@ -6,7 +6,6 @@ import { mapGuesthouse } from './guesthouses';
 export type GuesthouseDetails = Guesthouse & {
   galleryUrls: string[];
   logoUrl: string | null;
-  location: { lat: number; lng: number } | null;
   contact: Record<string, string>;
   numberOfRooms: number | null;
   checkInTime: string;
@@ -25,7 +24,6 @@ export function mapGuesthouseDetails(
 ): GuesthouseDetails | null {
   const listing = mapGuesthouse(id, data);
   if (!listing) return null;
-  const { lat, lng } = data.location ?? {};
   return {
     ...listing,
     galleryUrls: [
@@ -38,15 +36,6 @@ export function mapGuesthouseDetails(
       ),
     ],
     logoUrl: image(data.logoUrl),
-    location:
-      typeof lat === 'number' &&
-      Number.isFinite(lat) &&
-      Math.abs(lat) <= 90 &&
-      typeof lng === 'number' &&
-      Number.isFinite(lng) &&
-      Math.abs(lng) <= 180
-        ? { lat, lng }
-        : null,
     contact:
       data.contact && typeof data.contact === 'object'
         ? Object.fromEntries(

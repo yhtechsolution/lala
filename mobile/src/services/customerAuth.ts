@@ -33,6 +33,8 @@ export async function saveCustomerProfile(user: User, displayName: string) {
         displayName: name,
         createdAt: serverTimestamp(),
       });
+    } else {
+      transaction.update(ref, { displayName: name });
     }
   });
 }

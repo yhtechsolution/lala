@@ -44,8 +44,9 @@ export default function FavouritesScreen() {
       <View style={styles.header}>
         <View style={styles.brandRow}>
           <Image
-            source={require('../../assets/search/logo.png')}
+            source={require('../../assets/lala-house-mark.png')}
             style={styles.logo}
+            resizeMode="contain"
             accessibilityLabel="Lala logo"
           />
           <View>
@@ -55,7 +56,12 @@ export default function FavouritesScreen() {
         </View>
       </View>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>My Favourites</Text>
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>Favourites</Text>
+          {user && !loading && !error && (
+            <Text style={styles.countBadge}>{favourites.ids.length} saved</Text>
+          )}
+        </View>
         {(favourites.cached ||
           (favourites.ids.length > 0 && listings.cached)) &&
           !loading &&

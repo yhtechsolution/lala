@@ -1,5 +1,5 @@
 
-import { alpha, makeThemedStyles, shadows } from '../theme';
+import { alpha, colors, makeThemedStyles, shadows } from '../theme';
 
 export const styles = makeThemedStyles((colors) => ({
   rateButton: {
@@ -15,7 +15,9 @@ export const styles = makeThemedStyles((colors) => ({
   },
   card: {
     backgroundColor: colors.surface,
-    borderRadius: 12,
+    borderRadius: 24,
+    borderColor: colors.border,
+    borderWidth: 1,
     overflow: 'hidden',
     ...shadows.card,
   },
@@ -28,7 +30,7 @@ export const styles = makeThemedStyles((colors) => ({
     width: '100%',
   },
   imageFrame: {
-    backgroundColor: colors.blueSurface,
+    backgroundColor: colors.quietSurface,
     height: 176,
     position: 'relative',
     width: '100%',
@@ -53,7 +55,7 @@ export const styles = makeThemedStyles((colors) => ({
   },
   saveButton: {
     alignItems: 'center',
-    backgroundColor: alpha(colors.surface, 0.94),
+    backgroundColor: alpha(colors.card, 0.94),
     borderRadius: 18,
     height: 36,
     justifyContent: 'center',
@@ -65,7 +67,7 @@ export const styles = makeThemedStyles((colors) => ({
   },
   ratingPill: {
     alignItems: 'center',
-    backgroundColor: alpha(colors.surface, 0.95),
+    backgroundColor: alpha(colors.card, 0.95),
     borderRadius: 999,
     bottom: 12,
     flexDirection: 'row',
@@ -86,7 +88,7 @@ export const styles = makeThemedStyles((colors) => ({
     fontSize: 10,
   },
   imageBadge: {
-    backgroundColor: alpha(colors.surface, 0.92),
+    backgroundColor: alpha(colors.card, 0.92),
     borderRadius: 999,
     bottom: 12,
     color: colors.textMuted,
@@ -134,7 +136,7 @@ export const styles = makeThemedStyles((colors) => ({
   },
   tag: {
     backgroundColor: colors.quietSurface,
-    borderRadius: 6,
+    borderRadius: 999,
     paddingHorizontal: 8,
     paddingVertical: 3,
   },
@@ -172,7 +174,7 @@ export const styles = makeThemedStyles((colors) => ({
   detailsButton: {
     alignItems: 'center',
     backgroundColor: colors.primarySolid,
-    borderRadius: 10,
+    borderRadius: 999,
     flexDirection: 'row',
     gap: 5,
     justifyContent: 'center',

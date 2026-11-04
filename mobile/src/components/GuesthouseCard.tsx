@@ -18,7 +18,7 @@ type GuesthouseCardProps = {
   // Editorial cards use the larger layout shown in the top-rated section.
   editorial?: boolean;
   compact?: boolean;
-  // Shown on search results when sorting by distance, e.g. "3.2 km away".
+  // Shown on Explore results when sorting by distance, e.g. "3.2 km away".
   distanceLabel?: string;
 };
 
@@ -73,47 +73,106 @@ export function GuesthouseCard({
   const tags = guesthouse.amenities.slice(0, 3);
   const price = `P ${guesthouse.pricePerNight.toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
 
-  // Search uses Figma's horizontal result preview; Browse keeps its full card.
+  // Explore uses the horizontal list preview; Browse keeps its full card.
   if (compact)
     return (
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`View ${guesthouse.name}`}
-        onPress={openDetails}
-        style={searchStyles.resultCard}
-      >
-        {guesthouse.imageUrl && !imageFailed ? (
-          <Image
-            source={{ uri: guesthouse.imageUrl }}
-            style={searchStyles.resultImage}
-            resizeMode="cover"
-            onError={() => setImageFailed(true)}
-            accessibilityLabel={`${guesthouse.name} photo`}
-          />
-        ) : (
-          <View style={[searchStyles.resultImage, searchStyles.resultFallback]}>
-            <Text style={searchStyles.hint}>Photo unavailable</Text>
+      <>
+        <View style={searchStyles.resultCard}>
+          <View style={searchStyles.resultImageFrame}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`View ${guesthouse.name}`}
+              onPress={openDetails}
+              style={searchStyles.resultImagePressable}
+            >
+              {guesthouse.imageUrl && !imageFailed ? (
+                <Image
+                  source={{ uri: guesthouse.imageUrl }}
+                  style={searchStyles.resultImage}
+                  resizeMode="cover"
+                  onError={() => setImageFailed(true)}
+                  accessibilityLabel={`${guesthouse.name} photo`}
+                />
+              ) : (
+                <View style={searchStyles.resultFallback}>
+                  <Ionicons color={colors.textSoft} name="image-outline" size={24} />
+                  <Text style={searchStyles.resultFallbackText}>Photos coming soon</Text>
+                </View>
+              )}
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={saved ? `Remove ${guesthouse.name} from favourites` : `Save ${guesthouse.name}`}
+              accessibilityState={{
+                selected: saved,
+                busy: saving,
+                disabled: initializing || saving || (Boolean(user) && favouritesLoading),
+              }}
+              disabled={initializing || saving || (Boolean(user) && favouritesLoading)}
+              onPress={onToggleSaved}
+              style={searchStyles.resultSaveButton}
+            >
+              <Ionicons
+                color={saved ? colors.primary : colors.textMuted}
+                name={saved ? 'heart' : 'heart-outline'}
+                size={18}
+              />
+            </Pressable>
           </View>
-        )}
-        <View style={searchStyles.resultBody}>
-          <View>
-            <Text style={searchStyles.resultLocation}>
-              {guesthouse.city}
-              {distanceLabel ? ` · ${distanceLabel}` : ''}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`View ${guesthouse.name}`}
+            onPress={openDetails}
+            style={searchStyles.resultBody}
+          >
+            <View style={searchStyles.resultTopRow}>
+              <Text numberOfLines={1} style={searchStyles.resultLocation}>
+                {[guesthouse.city, guesthouse.country, distanceLabel].filter(Boolean).join(' • ')}
+              </Text>
+              <View style={searchStyles.resultRatingPill}>
+                {guesthouse.ratingCount > 0 && (
+                  <Ionicons color={colors.accent} name="star" size={11} />
+                )}
+                <Text style={searchStyles.resultRating}>
+                  {guesthouse.ratingCount
+                    ? guesthouse.averageRating.toFixed(1)
+                    : 'New'}
+                </Text>
+                {guesthouse.ratingCount > 0 && (
+                  <Text style={searchStyles.resultReviewCount}>
+                    ({guesthouse.ratingCount})
+                  </Text>
+                )}
+              </View>
+            </View>
+            <Text numberOfLines={1} style={searchStyles.resultName}>
+              {guesthouse.name}
             </Text>
-            <Text style={searchStyles.resultName}>{guesthouse.name}</Text>
-          </View>
-          <View style={searchStyles.resultPriceRow}>
-            <Text style={searchStyles.resultPrice}>{price}</Text>
-            <Text style={searchStyles.hint}>/ night</Text>
-            <Text style={searchStyles.resultRating}>
-              {guesthouse.ratingCount
-                ? `★ ${guesthouse.averageRating.toFixed(1)}`
-                : 'New'}
-            </Text>
-          </View>
+            {guesthouse.description ? (
+              <Text numberOfLines={1} style={searchStyles.resultDescription}>
+                {guesthouse.description}
+              </Text>
+            ) : null}
+            {tags.length > 0 && (
+              <View style={searchStyles.resultTags}>
+                {tags.slice(0, 2).map((tag) => (
+                  <Text key={tag} numberOfLines={1} style={searchStyles.resultTag}>
+                    {tag}
+                  </Text>
+                ))}
+              </View>
+            )}
+            <View style={searchStyles.resultPriceRow}>
+              <View style={searchStyles.resultPriceGroup}>
+                <Text style={searchStyles.resultPrice}>{price}</Text>
+                <Text style={searchStyles.resultPerNight}>/night</Text>
+              </View>
+              <Text style={searchStyles.resultDetailsLink}>Details ›</Text>
+            </View>
+          </Pressable>
         </View>
-      </Pressable>
+        <CustomerNotice notice={notice} onClose={() => setNotice(null)} />
+      </>
     );
 
   return (
@@ -173,7 +232,7 @@ export function GuesthouseCard({
           />
         </Pressable>
         <View style={styles.ratingPill}>
-          <Ionicons color={colors.star} name="star" size={12} />
+          <Ionicons color={colors.accent} name="star" size={12} />
           <Text style={styles.ratingText}>
             {guesthouse.ratingCount
               ? guesthouse.averageRating.toFixed(1)

@@ -19,6 +19,7 @@ import { authColors, styles } from '../styles/LoginScreen.styles';
 
 import { AuthIcon, AuthIconName } from '../components/AuthIcon';
 import { ConnectionNotice } from '../components/ConnectionNotice';
+import { ProfileAccountView } from '../components/ProfileAccountView';
 import { auth, isFirebaseConfigured } from '../config/firebase';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -130,12 +131,16 @@ export default function LoginScreen() {
     }
   };
 
+  if (user && customer && !profileLoading && !initializing) {
+    return <ProfileAccountView user={user} customer={customer} cached={profileCached} retryProfile={retryProfile} />;
+  }
+
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeArea}>
       <View style={styles.header}>
         <View style={styles.row}>
           <Image
-            source={require('../../assets/lala-logo.jpeg')}
+            source={require('../../assets/lala-house-mark.png')}
             style={styles.logo}
             contentFit="contain"
             accessibilityLabel="Lala logo"
@@ -146,14 +151,6 @@ export default function LoginScreen() {
           </View>
         </View>
         <View style={styles.row}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Explore guesthouses"
-            onPress={() => router.push('/search')}
-            style={styles.headerButton}
-          >
-            <AuthIcon name="filter" />
-          </Pressable>
           <View style={styles.profileIcon}>
             <AuthIcon name="profile" />
           </View>
@@ -185,8 +182,7 @@ export default function LoginScreen() {
             </Pressable>
           </View>
           <Text style={styles.description}>
-            Manage your saved safari retreats, direct bookings, and verified
-            traveler preferences.
+            Sign in to manage your saved guesthouses and contact hosts directly.
           </Text>
           {initializing || (user && (profileLoading || busy)) ? (
             <ActivityIndicator
@@ -303,7 +299,7 @@ export default function LoginScreen() {
                 badge
               >
                 {mode === 'signIn'
-                  ? 'Sign in to sync your saved Botswana safari lodges, trip favourites, and private host contact notes.'
+                  ? 'Sign in to sync your saved Botswana guesthouses and ratings across devices.'
                   : 'Create your free account to save your favourite guesthouses and share your ratings.'}
               </Card>
               {mode === 'signUp' && (
@@ -324,7 +320,7 @@ export default function LoginScreen() {
               )}
               <View style={styles.fieldLabelRow}>
                 <Text style={styles.passwordLabel}>Email Address</Text>
-                <Text style={styles.emailHint}>Verified Traveler</Text>
+                <Text style={styles.emailHint}>Your account email</Text>
               </View>
               <View style={styles.field}>
                 <AuthIcon name="email" />
@@ -423,8 +419,8 @@ export default function LoginScreen() {
                   icon="shield"
                   small
                 >
-                  Lala connects you directly with certified local hosts across
-                  Gaborone, Maun, and Chobe without traveler service charges.
+                  Lala connects you directly with guesthouses without adding a
+                  booking commission.
                 </Card>
               </View>
               <Pressable

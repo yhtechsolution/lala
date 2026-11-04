@@ -1,5 +1,5 @@
 
-import { alpha, makeThemedStyles } from '../theme';
+import { makeThemedStyles } from '../theme';
 
 export const styles = makeThemedStyles((colors) => ({
   loading: {
@@ -9,14 +9,17 @@ export const styles = makeThemedStyles((colors) => ({
     justifyContent: 'center',
   },
   tabBar: {
-    backgroundColor: alpha(colors.background, 0.98),
+    backgroundColor: colors.background,
     borderTopColor: colors.border,
     height: 64,
     paddingBottom: 7,
     paddingTop: 6,
   },
   tabLabel: {
-    fontFamily: 'PlusJakartaSans_600SemiBold',
-    fontSize: 10,
+    fontFamily: 'PlusJakartaSans_400Regular',
+    fontSize: 11,
+    lineHeight: 14,
+    textAlign: 'center',
   },
+  tabLabelActive: { fontFamily: 'PlusJakartaSans_700Bold' },
 }));

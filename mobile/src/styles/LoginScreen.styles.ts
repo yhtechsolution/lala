@@ -4,22 +4,22 @@ import { alpha, colors, makeThemedStyles } from '../theme';
 // Live getters: each read returns the colour for the scheme in use.
 export const authColors = {
   get background() {
-    return colors.paper;
+    return colors.background;
   },
   get border() {
-    return colors.line;
+    return colors.border;
   },
   get text() {
-    return colors.ink;
+    return colors.text;
   },
   get muted() {
-    return colors.inkMuted;
+    return colors.textSoft;
   },
   get cream() {
-    return colors.cream;
+    return colors.quietSurface;
   },
   get paleTeal() {
-    return alpha(colors.primary, 0.1);
+    return alpha(colors.primary, 0.08);
   },
 };
 export const styles = makeThemedStyles((colors) => ({
@@ -37,14 +37,14 @@ export const styles = makeThemedStyles((colors) => ({
   },
   logo: { width: 36, height: 36, borderRadius: 8 },
   brand: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'PlusJakartaSans_600SemiBold',
     fontSize: 19,
     lineHeight: 20,
     letterSpacing: -0.475,
     color: authColors.text,
   },
   caption: {
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'PlusJakartaSans_400Regular',
     fontSize: 11,
     lineHeight: 20,
     color: authColors.muted,
@@ -58,7 +58,7 @@ export const styles = makeThemedStyles((colors) => ({
   profileIcon: {
     width: 36,
     height: 36,
-    borderRadius: 12,
+    borderRadius: 999,
     backgroundColor: colors.primarySolid,
     alignItems: 'center',
     justifyContent: 'center',
@@ -78,7 +78,7 @@ export const styles = makeThemedStyles((colors) => ({
     gap: 8,
   },
   title: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'PlusJakartaSans_600SemiBold',
     lineHeight: 24,
     fontSize: 24,
     letterSpacing: -0.6,
@@ -88,9 +88,9 @@ export const styles = makeThemedStyles((colors) => ({
   smallTitle: { fontSize: 20 },
   secure: {
     flexShrink: 0,
-    backgroundColor: colors.orangeSolid,
+    backgroundColor: colors.accentSolid,
     color: colors.white,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'PlusJakartaSans_600SemiBold',
     fontSize: 11,
     letterSpacing: -0.6,
     lineHeight: 20,
@@ -101,12 +101,12 @@ export const styles = makeThemedStyles((colors) => ({
   },
   help: { flexDirection: 'row', alignItems: 'center', gap: 4, minHeight: 20 },
   helpText: {
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'PlusJakartaSans_400Regular',
     fontSize: 13,
     color: authColors.muted,
   },
   description: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'PlusJakartaSans_400Regular',
     fontSize: 13,
     lineHeight: 21.13,
     color: authColors.muted,
@@ -133,23 +133,23 @@ export const styles = makeThemedStyles((colors) => ({
     borderRadius: 8,
   },
   segmentActive: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.card,
     boxShadow: '0px 1px 1px rgba(0,0,0,0.05)',
   },
   segmentText: {
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'PlusJakartaSans_400Regular',
     fontSize: 13,
     lineHeight: 16,
     color: authColors.muted,
   },
-  selectedText: { fontFamily: 'Inter_600SemiBold', color: colors.primary },
+  selectedText: { fontFamily: 'PlusJakartaSans_600SemiBold', color: colors.primary },
   card: {
     flexDirection: 'row',
     gap: 12,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: authColors.border,
-    borderRadius: 16,
+    borderRadius: 24,
     padding: 15,
     boxShadow: '0px 1px 1px rgba(0,0,0,0.05)',
   },
@@ -169,7 +169,7 @@ export const styles = makeThemedStyles((colors) => ({
     flexWrap: 'wrap',
   },
   cardTitle: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'PlusJakartaSans_600SemiBold',
     fontSize: 16,
     lineHeight: 20,
     color: authColors.text,
@@ -181,13 +181,13 @@ export const styles = makeThemedStyles((colors) => ({
     overflow: 'hidden',
     paddingHorizontal: 10,
     paddingVertical: 2,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'PlusJakartaSans_600SemiBold',
     fontSize: 10,
     lineHeight: 20,
     letterSpacing: 0.25,
   },
   cardDescription: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'PlusJakartaSans_400Regular',
     fontSize: 12,
     lineHeight: 19.5,
     color: authColors.muted,
@@ -196,7 +196,7 @@ export const styles = makeThemedStyles((colors) => ({
   label: {
     marginTop: 16,
     marginBottom: 6,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'PlusJakartaSans_600SemiBold',
     fontSize: 11,
     lineHeight: 14,
     color: authColors.text,
@@ -205,30 +205,30 @@ export const styles = makeThemedStyles((colors) => ({
     height: 48,
     borderWidth: 1,
     borderColor: authColors.border,
-    borderRadius: 8,
+    borderRadius: 999,
     paddingHorizontal: 15,
     flexDirection: 'row',
     gap: 10,
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.card,
     boxShadow: '0px 1px 1px rgba(0,0,0,0.05)',
   },
   input: {
     flex: 1,
     minWidth: 0,
     height: '100%',
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'PlusJakartaSans_400Regular',
     fontSize: 14,
     color: authColors.text,
     paddingVertical: 0,
   },
   nameInput: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'PlusJakartaSans_400Regular',
     fontSize: 14,
     color: authColors.text,
   },
   emailHint: {
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'PlusJakartaSans_400Regular',
     fontSize: 11,
     lineHeight: 14,
     color: colors.primary,
@@ -241,13 +241,13 @@ export const styles = makeThemedStyles((colors) => ({
     marginBottom: 6,
   },
   passwordLabel: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'PlusJakartaSans_600SemiBold',
     fontSize: 11,
     lineHeight: 14,
     color: authColors.text,
   },
   forgot: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'PlusJakartaSans_600SemiBold',
     fontSize: 11,
     lineHeight: 14,
     color: colors.primary,
@@ -262,7 +262,7 @@ export const styles = makeThemedStyles((colors) => ({
     backgroundColor: authColors.cream,
   },
   showText: {
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'PlusJakartaSans_400Regular',
     fontSize: 11,
     lineHeight: 14,
     color: authColors.muted,
@@ -270,18 +270,18 @@ export const styles = makeThemedStyles((colors) => ({
   primaryButton: {
     marginTop: 16,
     height: 48,
-    borderRadius: 8,
+    borderRadius: 999,
     backgroundColor: colors.primarySolid,
     flexDirection: 'row',
     gap: 8,
     alignItems: 'center',
     justifyContent: 'center',
     boxShadow:
-      '0px 4px 6px -1px rgba(31,110,108,0.2), 0px 2px 4px -2px rgba(31,110,108,0.2)',
+      '0px 4px 6px -1px rgba(74,51,36,0.16), 0px 2px 4px -2px rgba(74,51,36,0.16)',
   },
   buttonText: {
     color: colors.white,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'PlusJakartaSans_600SemiBold',
     fontSize: 14,
     lineHeight: 20,
   },
@@ -289,7 +289,7 @@ export const styles = makeThemedStyles((colors) => ({
   trustCard: { marginTop: 16 },
   shieldBox: { width: 36, height: 36 },
   trustTitle: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'PlusJakartaSans_600SemiBold',
     fontSize: 12,
     lineHeight: 19.5,
     color: authColors.text,
@@ -302,28 +302,28 @@ export const styles = makeThemedStyles((colors) => ({
   },
   link: {
     color: authColors.muted,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'PlusJakartaSans_600SemiBold',
     fontSize: 12,
   },
   notice: {
     marginTop: 16,
     padding: 15,
     borderRadius: 16,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: authColors.border,
     gap: 10,
   },
   noticeTitle: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'PlusJakartaSans_600SemiBold',
     fontSize: 12,
-    color: colors.orangeText,
+    color: colors.accent,
   },
   noticeText: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'PlusJakartaSans_400Regular',
     fontSize: 12,
     lineHeight: 19.5,
-    color: colors.orangeText,
+    color: colors.accent,
   },
   loader: { marginVertical: 40 },
   scrim: {
@@ -335,7 +335,7 @@ export const styles = makeThemedStyles((colors) => ({
     width: '100%',
     maxWidth: 480,
     alignSelf: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.card,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 24,
@@ -351,7 +351,7 @@ export const styles = makeThemedStyles((colors) => ({
     marginBottom: 16,
   },
   sheetTitle: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'PlusJakartaSans_600SemiBold',
     fontSize: 19,
     color: authColors.text,
   },
@@ -362,7 +362,7 @@ export const styles = makeThemedStyles((colors) => ({
     justifyContent: 'center',
   },
   success: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'PlusJakartaSans_400Regular',
     fontSize: 13,
     lineHeight: 21,
     color: colors.primary,

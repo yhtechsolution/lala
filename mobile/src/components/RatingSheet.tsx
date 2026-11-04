@@ -149,13 +149,9 @@ export function RatingSheet({
             <>
               {!loadError && (
                 <>
-                  <Text style={styles.description}>
-                    Choose a rating from 1 to 5 stars.
-                  </Text>
-                  <View
-                    accessibilityRole="radiogroup"
-                    style={ratingStyles.stars}
-                  >
+                  <View style={ratingStyles.panel}>
+                    <Text style={ratingStyles.prompt}>HOW WAS YOUR STAY?</Text>
+                    <View accessibilityRole="radiogroup" style={ratingStyles.stars}>
                     {[1, 2, 3, 4, 5].map((value) => (
                       <Pressable
                         key={value}
@@ -177,10 +173,11 @@ export function RatingSheet({
                         />
                       </Pressable>
                     ))}
+                    </View>
+                    <Text style={ratingStyles.score}>
+                      {score ? `${score} / 5` : 'Select a star rating'}
+                    </Text>
                   </View>
-                  <Text style={ratingStyles.score}>
-                    {score ? `${score} / 5` : 'Select a star rating'}
-                  </Text>
                 </>
               )}
               {error && (

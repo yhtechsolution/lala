@@ -14,10 +14,11 @@ import {
 } from './smartSearch';
 
 // Model names change over time; set EXPO_PUBLIC_GEMINI_MODEL to switch without a code change.
-const MODEL_NAME = process.env.EXPO_PUBLIC_GEMINI_MODEL || 'gemini-2.5-flash';
+const MODEL_NAME = process.env.EXPO_PUBLIC_GEMINI_MODEL || 'gemini-3.5-flash-lite';
 // Set EXPO_PUBLIC_AI_SEARCH=off to use the rule-based reader only.
 const AI_ENABLED = process.env.EXPO_PUBLIC_AI_SEARCH !== 'off';
-const AI_TIMEOUT_MS = 8000;
+// Generous because the model can be slow; the rule-based reader takes over if this runs out.
+const AI_TIMEOUT_MS = 60_000;
 const CACHE_LIMIT = 20;
 
 export type SmartSearchResult = { plan: SearchPlan; source: 'ai' | 'local' };

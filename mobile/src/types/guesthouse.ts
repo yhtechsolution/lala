@@ -12,8 +12,7 @@ export type Guesthouse = {
   amenities: string[];
   description: string;
   imageUrl: string | null;
-  // Saved map position; null or missing when the admin did not enter a valid one.
-  location?: Coordinates | null;
+  location: Coordinates | null;
   // Optional Setswana description written (or reviewed) by an admin.
   descriptionTn?: string;
 };

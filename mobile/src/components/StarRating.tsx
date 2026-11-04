@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { colors, makeThemedStyles } from '../theme';
 
 interface StarRatingProps {
   rating: number; // 1 to 5
@@ -10,7 +11,6 @@ interface StarRatingProps {
   onRatingChange?: (newRating: number) => void;
 }
 
-import { colors, makeThemedStyles } from '../theme';
 export const StarRating: React.FC<StarRatingProps> = ({
   rating,
   maxStars = 5,
@@ -35,7 +35,7 @@ export const StarRating: React.FC<StarRatingProps> = ({
             <Ionicons
               name={isFilled ? 'star' : 'star-outline'}
               size={starSize}
-              color={isFilled ? colors.star : colors.starEmpty}
+              color={isFilled ? colors.accent : colors.border}
             />
           </TouchableOpacity>
         );

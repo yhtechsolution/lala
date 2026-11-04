@@ -11,10 +11,10 @@ import {
   Inter_600SemiBold,
   Inter_700Bold,
 } from '@expo-google-fonts/inter';
-import { Tabs, usePathname } from 'expo-router';
+import { Tabs } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Fragment } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 import { styles } from '../styles/RootLayout.styles';
 
 // Importing this file once at the app root initializes the shared Firebase app.
@@ -23,7 +23,17 @@ import { colors } from '../theme';
 import { ThemeProvider, useThemeMode } from '../context/ThemeContext';
 import { FavouritesProvider } from '../context/FavouritesContext';
 import { AuthProvider } from '../context/AuthContext';
-import { AuthTabBar } from '../components/AuthTabBar';
+
+const tabLabel = (label: string) =>
+  ({ focused }: { focused: boolean }) => (
+    <Text style={[
+      styles.tabLabel,
+      focused && styles.tabLabelActive,
+      { color: focused ? colors.primary : colors.textMuted },
+    ]}>
+      {label}
+    </Text>
+  );
 
 // RootLayout loads global fonts, applies the light/dark theme and renders the navigation.
 export default function RootLayout() {
@@ -56,13 +66,7 @@ function LoadingScreen() {
 // The navigator is rebuilt when the colour scheme changes so every screen picks up the new
 // colours. Sign-in and favourites state live above it and are kept.
 function AppLayout() {
-  const pathname = usePathname();
   const { scheme } = useThemeMode();
-  const isAuthScreen =
-    pathname === '/login' ||
-    pathname === '/compare' ||
-    pathname.startsWith('/guesthouse/');
-
   return (
     <AuthProvider>
       <FavouritesProvider>
@@ -70,15 +74,11 @@ function AppLayout() {
           <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
           {/* Each file in src/app becomes one route in this bottom tab navigator. */}
           <Tabs
-            tabBar={
-              isAuthScreen ? (props) => <AuthTabBar {...props} /> : undefined
-            }
             screenOptions={{
               headerShown: false,
               sceneStyle: { backgroundColor: colors.background },
               tabBarActiveTintColor: colors.primary,
               tabBarInactiveTintColor: colors.textMuted,
-              tabBarLabelStyle: styles.tabLabel,
               tabBarStyle: styles.tabBar,
             }}
           >
@@ -88,9 +88,9 @@ function AppLayout() {
               name="index"
               options={{
                 title: 'Browse',
-                tabBarLabel: 'Home',
-                tabBarIcon: ({ color, size }) => (
-                  <Ionicons color={color} name="home-outline" size={size} />
+                tabBarLabel: tabLabel('Home'),
+                tabBarIcon: ({ color, size, focused }) => (
+                  <Ionicons color={color} name={focused ? 'home' : 'home-outline'} size={size} />
                 ),
               }}
             />
@@ -98,9 +98,9 @@ function AppLayout() {
               name="search"
               options={{
                 title: 'Search',
-                tabBarLabel: 'Explore',
-                tabBarIcon: ({ color, size }) => (
-                  <Ionicons color={color} name="compass-outline" size={size} />
+                tabBarLabel: tabLabel('Explore'),
+                tabBarIcon: ({ color, size, focused }) => (
+                  <Ionicons color={color} name={focused ? 'compass' : 'compass-outline'} size={size} />
                 ),
               }}
             />
@@ -108,8 +108,9 @@ function AppLayout() {
               name="favourites"
               options={{
                 title: 'Favourites',
-                tabBarIcon: ({ color, size }) => (
-                  <Ionicons color={color} name="heart-outline" size={size} />
+                tabBarLabel: tabLabel('Favourites'),
+                tabBarIcon: ({ color, size, focused }) => (
+                  <Ionicons color={color} name={focused ? 'heart' : 'heart-outline'} size={size} />
                 ),
               }}
             />
@@ -117,9 +118,9 @@ function AppLayout() {
               name="login"
               options={{
                 title: 'Login',
-                tabBarLabel: 'Profile',
-                tabBarIcon: ({ color, size }) => (
-                  <Ionicons color={color} name="person-outline" size={size} />
+                tabBarLabel: tabLabel('Profile'),
+                tabBarIcon: ({ color, size, focused }) => (
+                  <Ionicons color={color} name={focused ? 'person' : 'person-outline'} size={size} />
                 ),
               }}
             />

@@ -23,13 +23,15 @@ import { colors } from '../theme';
 
 export function BrowseScreen() {
   const { guesthouses, loading, cached, error, retry } = useGuesthouses();
-  const { ids: recentIds, clear: clearRecent } = useRecentlyViewed();
   const [query, setQuery] = useState('');
+  const [smartSelected, setSmartSelected] = useState(false);
+  const { ids: recentIds, clear: clearRecent } = useRecentlyViewed();
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const homeScroll = useRef<ScrollView>(null);
   const cards = useRef<ScrollView>(null);
   const nearby = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
+    // A smart-search sentence is interpreted on Explore, not matched as a name here.
+    const normalizedQuery = smartSelected ? '' : query.trim().toLowerCase();
     return guesthouses.filter(
       (guesthouse) =>
         (!selectedCity ||
@@ -38,7 +40,7 @@ export function BrowseScreen() {
           .toLowerCase()
           .includes(normalizedQuery),
     );
-  }, [guesthouses, query, selectedCity]);
+  }, [guesthouses, query, selectedCity, smartSelected]);
   const recentlyViewed = useMemo(
     () => resolveRecentlyViewed(recentIds, guesthouses),
     [recentIds, guesthouses],
@@ -71,14 +73,27 @@ export function BrowseScreen() {
     });
     return [...cities.values()].sort((a, b) => a.name.localeCompare(b.name));
   }, [guesthouses]);
+  const openSearch = (smart: boolean) =>
+    router.push({
+      pathname: '/search',
+      params: {
+        q: query,
+        city: selectedCity ?? '',
+        ...(smart
+          ? { smart: 'true', smartRequest: String(Date.now()) }
+          : {}),
+      },
+    });
+  const submitSearch = () => openSearch(smartSelected);
 
   return (
     <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeArea}>
       <View style={styles.header}>
         <View style={styles.brandRow}>
           <Image
-            source={require('../../assets/search/logo.png')}
+            source={require('../../assets/lala-house-mark.png')}
             style={styles.logo}
+            resizeMode="contain"
             accessibilityLabel="Lala logo"
           />
           <View>
@@ -87,19 +102,6 @@ export function BrowseScreen() {
           </View>
         </View>
         <View style={styles.headerActions}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Open search and filters"
-            onPress={() =>
-              router.push({
-                pathname: '/search',
-                params: { q: query, city: selectedCity ?? '', filters: 'true' },
-              })
-            }
-            style={styles.headerIcon}
-          >
-            <Feather color={colors.text} name="sliders" size={17} />
-          </Pressable>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Open profile"
@@ -118,11 +120,8 @@ export function BrowseScreen() {
         <View style={styles.horizontalPadding}>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Show guesthouses in all locations"
-            onPress={() => {
-              setQuery('');
-              setSelectedCity(null);
-            }}
+            accessibilityLabel="Jump to location choices"
+            onPress={() => homeScroll.current?.scrollToEnd({ animated: true })}
             style={styles.locationCard}
           >
             <View style={styles.locationMain}>
@@ -162,14 +161,13 @@ export function BrowseScreen() {
             <TextInput
               accessibilityLabel="Search guesthouses"
               onChangeText={setQuery}
-              onSubmitEditing={() =>
-                router.push({
-                  pathname: '/search',
-                  params: { q: query, city: selectedCity ?? '' },
-                })
-              }
+              onSubmitEditing={submitSearch}
               returnKeyType="search"
-              placeholder="Search by guesthouse, city or area"
+              placeholder={
+                smartSelected
+                  ? 'Describe the stay you want'
+                  : 'Search by guesthouse or city'
+              }
               placeholderTextColor={colors.textSoft}
               style={styles.searchInput}
               value={query}
@@ -177,17 +175,45 @@ export function BrowseScreen() {
             />
             <Pressable
               accessibilityRole="button"
+              accessibilityLabel="Smart search mode"
+              accessibilityState={{ selected: smartSelected }}
+              onPress={() => {
+                if (smartSelected) {
+                  setSmartSelected(false);
+                } else {
+                  setSmartSelected(true);
+                  if (query.trim()) openSearch(true);
+                }
+              }}
+              style={[
+                styles.smartSearchAction,
+                smartSelected && styles.smartSearchActionSelected,
+              ]}
+            >
+              <Ionicons
+                color={smartSelected ? colors.white : colors.primaryDark}
+                name="sparkles"
+                size={15}
+              />
+              <Text
+                style={[
+                  styles.smartSearchActionText,
+                  smartSelected && styles.smartSearchActionTextSelected,
+                ]}
+              >
+                Smart
+              </Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
               accessibilityLabel="Open search and filters"
-              onPress={() =>
+              onPress={() => {
+                setSmartSelected(false);
                 router.push({
                   pathname: '/search',
-                  params: {
-                    q: query,
-                    city: selectedCity ?? '',
-                    filters: 'true',
-                  },
-                })
-              }
+                  params: { q: query, city: selectedCity ?? '', filters: 'true' },
+                });
+              }}
               style={styles.filterButton}
             >
               <Feather color={colors.textMuted} name="sliders" size={15} />
@@ -254,11 +280,11 @@ export function BrowseScreen() {
             <View style={styles.sectionHeadingRow}>
               <View>
                 <View style={styles.inlineRow}>
-                  <Text style={styles.sectionTitle}>Guesthouses</Text>
+                  <Text style={styles.sectionTitle}>Explore Guesthouses</Text>
                   <View style={styles.sectionDot} />
                 </View>
                 <Text style={styles.sectionSubtitle}>
-                  Find your stay · Cheapest first
+                  Find your stay across Botswana
                 </Text>
               </View>
               <Pressable
