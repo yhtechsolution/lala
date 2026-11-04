@@ -4,7 +4,7 @@ Lala is a guesthouse discovery app made up of two parts: a web admin portal and 
 
 ## What each part does
 
-The admin portal (web) lets admins log in, register guesthouses with their photos, amenities, location, price and contact details, and manage those listings later. It also has a dashboard with some numbers about the listings, a communications hub for sending messages, and an analytics page.
+The admin portal (web) lets admins log in, register guesthouses with their photos, amenities, location, price and contact details, and manage those listings later. It also has a dashboard with some numbers about the listings, a communications hub for sending messages, and an analytics  page.
 
 The customer app (mobile) lets anyone browse and search guesthouses without an account. Once you sign up and log in you can favourite guesthouses and leave ratings.
 
