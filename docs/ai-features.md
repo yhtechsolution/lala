@@ -15,7 +15,7 @@ No customer data, emails, phone numbers or ratings by person are ever sent.
 
 1. Firebase console, Build, **AI Logic**, Get started. Choose **Gemini Developer API** and enable it. Keep the project on the free Spark plan; the free tier needs a project that is not linked to billing.
 2. Add the optional settings to `web/.env` (see `web/.env.example`):
-   - `VITE_GEMINI_MODEL` defaults to `gemini-2.5-flash`. If the console or the error message says the model is unavailable, set a current one.
+   - `VITE_GEMINI_MODEL` defaults to `gemini-3.5-flash-lite`. If the console or the error message says the model is unavailable, set a current one.
 3. Restart `npm run dev`.
 
 ## Protecting the quota (App Check, recommended before the demo)

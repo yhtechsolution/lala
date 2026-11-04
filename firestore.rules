@@ -80,7 +80,8 @@ service cloud.firestore {
         && (!('descriptionTn' in d)
           || (d.descriptionTn is string && d.descriptionTn.size() <= 2000))
         // Optional visibility. Missing means published, so older listings keep working.
-        && (!('status' in d) || d.status in ['published', 'draft', 'hidden']);
+        // "active" and "suspended" are the older names for published and hidden.
+        && (!('status' in d) || d.status in ['published', 'draft', 'hidden', 'active', 'suspended']);
     }
 
     match /guesthouses/{guesthouseId} {
@@ -174,7 +175,7 @@ service cloud.firestore {
           && d.updatedAt == request.time
           && exists(/databases/$(database)/documents/guesthouses/$(d.guesthouseId))
           // Only published listings can be rated; drafts and hidden ones are not visible to customers.
-          && get(/databases/$(database)/documents/guesthouses/$(d.guesthouseId)).data.get('status', 'published') == 'published'
+          && get(/databases/$(database)/documents/guesthouses/$(d.guesthouseId)).data.get('status', 'published') in ['published', 'active']
           && summaryMatchesRating(d.guesthouseId, request.auth.uid);
       }
 
