@@ -15,7 +15,13 @@ vi.mock("firebase/firestore", () => ({
   serverTimestamp: () => "SERVER_TIME",
 }));
 vi.mock("@/lib/firebase", () => ({ getFirebase: () => ({ db: {}, auth: mocks.auth }) }));
-import { saveGuesthouse, validateGuesthouse, type GuesthouseInput } from "@/lib/guesthouses";
+import {
+  isGuesthouseActive,
+  saveGuesthouse,
+  setGuesthouseStatus,
+  validateGuesthouse,
+  type GuesthouseInput,
+} from "@/lib/guesthouses";
 const input: GuesthouseInput = {
   name: " Palm House ",
   city: " Maun ",
@@ -48,8 +54,14 @@ describe("Guesthouse writes", () => {
         ratingSum: 0,
         createdBy: "admin-1",
         createdAt: "SERVER_TIME",
+        status: "published",
       }),
     );
+  });
+  it("never sends undefined fields to Firestore", async () => {
+    await saveGuesthouse(input, "g1");
+    const payload = mocks.updateDoc.mock.calls[0]![1] as Record<string, unknown>;
+    expect(Object.values(payload)).not.toContain(undefined);
   });
   it("updates editable fields without resetting rating aggregates or creator metadata", async () => {
     await saveGuesthouse(input, "g1");
@@ -68,5 +80,28 @@ describe("Guesthouse writes", () => {
     mocks.auth.currentUser = null;
     await expect(saveGuesthouse(input)).rejects.toThrow("Sign in");
     expect(mocks.addDoc).not.toHaveBeenCalled();
+  });
+});
+describe("Guesthouse suspension", () => {
+  it("treats older records without a status, or marked active, as visible", () => {
+    expect(isGuesthouseActive({})).toBe(true);
+    expect(isGuesthouseActive({ status: "active" })).toBe(true);
+    expect(isGuesthouseActive({ status: "published" })).toBe(true);
+    expect(isGuesthouseActive({ status: "suspended" })).toBe(false);
+    expect(isGuesthouseActive({ status: "draft" })).toBe(false);
+  });
+  it("updates status and who changed it without deleting the listing", async () => {
+    await setGuesthouseStatus("g1", "hidden");
+    expect(mocks.updateDoc).toHaveBeenCalledWith("guesthouses/g1", {
+      status: "hidden",
+      statusChangedAt: "SERVER_TIME",
+      statusChangedBy: "admin-1",
+    });
+    expect(mocks.deleteDoc).not.toHaveBeenCalled();
+  });
+  it("requires a signed-in administrator before changing status", async () => {
+    mocks.auth.currentUser = null;
+    await expect(setGuesthouseStatus("g1", "published")).rejects.toThrow("Sign in");
+    expect(mocks.updateDoc).not.toHaveBeenCalled();
   });
 });

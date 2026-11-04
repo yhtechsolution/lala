@@ -349,7 +349,7 @@ For automated testing, run:
 ```bash
 cd lala-guesthouse-platform
 npm install @firebase/rules-unit-testing
-node tests/security-rules.test.js
+npm test   # repo root: starts the Firestore emulator and runs tests/rules.test.js
 ```
 
 This will run all scenarios automatically and output results.

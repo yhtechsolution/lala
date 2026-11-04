@@ -4,6 +4,7 @@ import { PageHeading } from "@/components/portal-shell";
 import { useGuesthouses } from "@/lib/live-guesthouses";
 import { DiscoveryMap } from "@/components/discovery-map";
 import { isMappableListing } from "@/lib/discovery";
+import { isGuesthouseActive } from "@/lib/guesthouses";
 export const Route = createFileRoute("/discovery")({ component: Discovery });
 function Discovery() {
   return <DiscoveryContent {...useGuesthouses()} />;
@@ -21,7 +22,8 @@ export function DiscoveryContent({
   const [city, setCity] = useState("");
   const [selected, setSelected] = useState("");
   const [resetKey, setResetKey] = useState(0);
-  const eligible = useMemo(() => items.filter(isMappableListing), [items]);
+  const activeItems = useMemo(() => items.filter(isGuesthouseActive), [items]);
+  const eligible = useMemo(() => activeItems.filter(isMappableListing), [activeItems]);
   const cities = useMemo(() => Array.from(new Set(eligible.map((i) => i.city))).sort(), [eligible]);
   const results = useMemo(
     () =>
@@ -88,7 +90,8 @@ export function DiscoveryContent({
         </p>
       )}
       <p className="mb-4 text-sm text-muted-foreground">
-        {results.length} mapped listings worldwide. {items.length - eligible.length} listings
+        {results.length} mapped listings worldwide. {items.length - activeItems.length} draft or
+        suspended listings hidden; {activeItems.length - eligible.length} published listings
         excluded because coordinates are missing or invalid. Numeric latitude must be -90 to 90;
         longitude -180 to 180.
       </p>

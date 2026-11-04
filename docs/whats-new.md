@@ -1,5 +1,7 @@
 # What is new in this package
 
+This package is the new main with every feature below re-applied on top of it. See `merge-report.md` for what came from where and what to check.
+
 ## Web admin portal
 - **AI description assistant** and **AI dashboard summary** (Firebase AI Logic, free tier). See `ai-features.md`.
 - **Setswana description** field with an AI translate button.

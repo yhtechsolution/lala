@@ -8,7 +8,7 @@ A traveller types a sentence in the search box and taps **Smart search**. The ap
 2. Two readers interpret the sentence:
    - **Rule-based reader** (`smartSearch.ts`, no internet needed): understands phrases such as "under P800", "between 300 and 700", "4 stars and above", "cheap", "top rated" and known city, amenity and guesthouse names.
    - **Gemini** (`smartSearchAi.ts`, through Firebase AI Logic): understands looser wording. It may only choose cities, amenities and names from the real lists.
-3. The AI's answer is checked (unknown cities or amenities are dropped, prices and ratings are bounds-checked) and merged with the rule-based reading. If the AI fails, times out after 8 seconds or returns nothing, the rule-based reading is used, so search still works offline and during the demo.
+3. The AI's answer is checked (unknown cities or amenities are dropped, prices and ratings are bounds-checked) and merged with the rule-based reading. If the AI fails, times out after 60 seconds or returns nothing, the rule-based reading is used, so search still works offline and during the demo.
 4. A banner shows exactly which filters were applied, with a clear button.
 
 ## Setup
@@ -19,7 +19,7 @@ Optional variables in `mobile/.env`:
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `EXPO_PUBLIC_GEMINI_MODEL` | `gemini-2.5-flash` | Model name; change it if the model is retired |
+| `EXPO_PUBLIC_GEMINI_MODEL` | `gemini-3.5-flash-lite` | Model name; change it if the model is retired |
 | `EXPO_PUBLIC_AI_SEARCH` | on | Set to `off` to use the rule-based reader only |
 
 ## Tests

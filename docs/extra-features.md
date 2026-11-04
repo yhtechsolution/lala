@@ -1,7 +1,7 @@
 # Extra features
 
 ## Nearest to me (mobile)
-Choosing **Nearest to Me** in the sort sheet asks for location permission, then sorts by straight-line distance and shows "3.2 km away" on each result. Guesthouses without a saved map position go last. If permission is denied or location is off, the list shows cheapest first and says so. Location is used only for sorting and is never stored.
+Choosing **Nearest to Me** in the sort sheet asks for location permission, then sorts by straight-line distance and shows "3.2 km away" on each result. Guesthouses without a saved map position go last. If the traveller already allowed location for the Map View, that position is reused instead of asking again. If permission is denied or location is off, the list shows cheapest first and says so. Location is used only for sorting and is never stored.
 Setup: run `npx expo install expo-location` in `mobile/` and add the plugin to `app.json`:
 ```json
 ["expo-location", { "locationWhenInUsePermission": "Lala uses your location to sort guesthouses by distance. It is never stored." }]

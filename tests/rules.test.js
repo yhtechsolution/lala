@@ -165,8 +165,8 @@ describe('guesthouses', () => {
     await assertFails(addDoc(collection(admin(), 'guesthouses'), newGuesthouse({ createdBy: 'someone-else' })));
   });
 
-  it('accepts published, draft and hidden status but nothing else', async () => {
-    for (const status of ['published', 'draft', 'hidden'])
+  it('accepts published, draft and hidden status (and the older active and suspended) but nothing else', async () => {
+    for (const status of ['published', 'draft', 'hidden', 'active', 'suspended'])
       await assertSucceeds(addDoc(collection(admin(), 'guesthouses'), newGuesthouse({ status })));
     await assertFails(addDoc(collection(admin(), 'guesthouses'), newGuesthouse({ status: 'archived' })));
     await assertFails(addDoc(collection(admin(), 'guesthouses'), newGuesthouse({ status: 7 })));
@@ -177,6 +177,16 @@ describe('guesthouses', () => {
     await assertSucceeds(updateDoc(doc(admin(), 'guesthouses', HOUSE), { status: 'published' }));
     await assertFails(updateDoc(doc(admin(), 'guesthouses', HOUSE), { status: 'archived' }));
     await assertFails(updateDoc(doc(alice(), 'guesthouses', HOUSE), { status: 'hidden' }));
+  });
+
+  it('lets an admin record who changed a status and when', async () => {
+    await assertSucceeds(
+      updateDoc(doc(admin(), 'guesthouses', HOUSE), {
+        status: 'hidden',
+        statusChangedAt: serverTimestamp(),
+        statusChangedBy: ADMIN,
+      }),
+    );
   });
 
   it('can be edited by an admin', async () => {

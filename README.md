@@ -131,3 +131,9 @@ Who did what is in the commit history on GitHub. A contribution log is in `CONTR
 ## Demo
 
 Demo video link: to be added.
+
+## Demo Video and QA Testing
+
+[Demo Video and QA Testing](https://drive.google.com/file/d/1Q7J0F-Hgid7TO1tdk7pFqrJFilaAqK4F/view?usp=drive_link)
+
+See also: [docs/demo-video-and-qa-testing.md](docs/demo-video-and-qa-testing.md)
