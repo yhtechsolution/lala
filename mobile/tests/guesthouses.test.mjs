@@ -72,6 +72,14 @@ function fields(name, price, extra = {}) {
     averageRating: { doubleValue: 4.5 },
     ratingCount: { integerValue: '12' },
     description: { stringValue: 'A real Firestore test record' },
+    location: {
+      mapValue: {
+        fields: {
+          lat: { doubleValue: -19.98 },
+          lng: { doubleValue: 23.42 },
+        },
+      },
+    },
     amenities: {
       arrayValue: {
         values: [{ stringValue: 'WiFi' }, { stringValue: 'Parking' }],
@@ -155,6 +163,7 @@ try {
   );
   assert.equal(listings[0].ratingCount, 12);
   assert.equal(listings[0].imageUrl, 'https://example.com/logo.jpg');
+  assert.deepEqual(listings[0].location, { lat: -19.98, lng: 23.42 });
   assert.equal(listings[1].imageUrl, null);
   assert.deepEqual(listings[1].amenities, []);
   console.log(

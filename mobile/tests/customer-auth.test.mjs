@@ -129,6 +129,12 @@ try {
   );
   pass('Profile retries preserve the original creation timestamp');
 
+  await service.saveCustomerProfile(user, 'Updated Traveler');
+  const updatedProfile = (await getDoc(doc(firestore, 'customers', user.uid))).data();
+  assert.equal(updatedProfile.displayName, 'Updated Traveler');
+  assert.equal(updatedProfile.createdAt.toMillis(), profile.createdAt.toMillis());
+  pass('Editing a profile updates its name and preserves the creation timestamp');
+
   await assert.rejects(
     service.signUpCustomer(email, password, 'Duplicate'),
     (error) =>

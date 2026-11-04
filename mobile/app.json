@@ -11,16 +11,16 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.mrmalope.lala",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#F7F2E9",
         "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
+        "monochromeImage": "./assets/android-icon-foreground.png"
       },
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/lala-house-mark.png"
     },
     "plugins": [
       "expo-font",
@@ -29,7 +29,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Lala uses your location to sort guesthouses by distance. It is never stored."
+          "locationWhenInUsePermission": "Lala uses your location to show nearby guesthouses on the map and to sort by distance. It is never stored."
         }
       ]
     ]

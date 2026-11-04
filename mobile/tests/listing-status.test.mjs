@@ -35,6 +35,9 @@ const record = (extra = {}) => ({
 // Published and legacy (no status) listings are visible.
 assert.equal(guesthouses.isPublished(undefined), true);
 assert.equal(guesthouses.isPublished('published'), true);
+// "active" is the older name for published.
+assert.equal(guesthouses.isPublished('active'), true);
+assert.ok(guesthouses.mapGuesthouse('a', record({ status: 'active' })));
 assert.ok(guesthouses.mapGuesthouse('a', record()));
 assert.ok(guesthouses.mapGuesthouse('a', record({ status: 'published' })));
 
@@ -42,6 +45,7 @@ assert.ok(guesthouses.mapGuesthouse('a', record({ status: 'published' })));
 for (const status of [
   'draft',
   'hidden',
+  'suspended',
   'archived',
   '',
   null,

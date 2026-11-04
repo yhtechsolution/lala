@@ -54,37 +54,38 @@ const mustReadOn = (scheme, foreground, background, minimum) => {
 for (const [fg, bg, min] of [
   ['text', 'background', 7],
   ['text', 'surface', 7],
+  ['text', 'card', 7],
   ['text', 'quietSurface', 7],
+  ['text', 'blueSurface', 7],
   ['text', 'blueChip', 7],
+  ['text', 'iconSurface', 7],
+  ['text', 'creamDeep', 7],
   ['textMuted', 'surface', 7],
   ['textMuted', 'background', 7],
   ['textSoft', 'surface', 4.5],
+  ['textSoft', 'background', 4.5],
   ['primary', 'surface', 4.5],
   ['primary', 'background', 4.5],
   ['primaryDark', 'blueChip', 4.5],
   ['primaryDark', 'surface', 4.5],
   ['white', 'primarySolid', 4.5],
   ['white', 'primaryFill', 4.5],
-  ['onOrange', 'orangeFill', 4.5],
-  ['white', 'orangeSolid', 4.5],
   ['white', 'accentSolid', 4.5],
   ['accent', 'surface', 4.5],
-  ['orangeText', 'cream', 4.5],
+  ['accent', 'background', 4.5],
   ['warning', 'surface', 4.5],
-  ['slate', 'surface', 4.5],
-  ['ink', 'paper', 7],
-  ['inkMuted', 'paper', 4.5],
-  ['inkMuted', 'cream', 4.5],
-  ['ink', 'cream', 7],
-  ['star', 'surface', 3],
+  ['danger', 'surface', 4.5],
+  ['danger', 'background', 4.5],
+  ['text', 'warmChip', 7],
 ])
   mustReadOn('dark', fg, bg, min);
-// The unchanged light palette keeps its main text readable too.
+// The light palette keeps its main text readable too.
 for (const [fg, bg, min] of [
   ['text', 'background', 7],
   ['text', 'surface', 7],
-  ['primary', 'surface', 4.5],
+  ['textSoft', 'background', 4.5],
   ['white', 'primarySolid', 4.5],
+  ['white', 'primaryFill', 4.5],
 ])
   mustReadOn('light', fg, bg, min);
 
@@ -170,10 +171,10 @@ assert.ok(
 // The login screen's shared colours follow the scheme too.
 const login = load(join(src, 'styles/LoginScreen.styles.ts'));
 theme.setActiveScheme('dark');
-assert.equal(login.authColors.background, dark.paper);
-assert.equal(login.authColors.text, dark.ink);
+assert.equal(login.authColors.background, dark.background);
+assert.equal(login.authColors.text, dark.text);
 theme.setActiveScheme('light');
-assert.equal(login.authColors.background, light.paper);
+assert.equal(login.authColors.background, light.background);
 
 // ---------- no colour written directly in a screen or style file ----------
 const hex = /#[0-9A-Fa-f]{3,8}\b/;
@@ -187,7 +188,9 @@ const offenders = walk(src)
     (file) =>
       /\.(ts|tsx)$/.test(file) &&
       !file.endsWith('theme.ts') &&
-      !file.includes('AddReviewModal'),
+      !file.includes('AddReviewModal') &&
+      // The map runs inside a WebView with its own HTML and CSS, outside the theme system.
+      !file.includes('LeafletMapHtml'),
   )
   .filter((file) => hex.test(readFileSync(file, 'utf8')));
 assert.deepEqual(

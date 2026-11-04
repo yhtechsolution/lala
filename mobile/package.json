@@ -11,6 +11,7 @@
     "expo": "~57.0.26",
     "expo-constants": "~57.0.20",
     "expo-font": "~57.0.4",
+    "expo-haptics": "~57.0.3",
     "expo-image": "~57.0.5",
     "expo-linking": "~57.0.11",
     "expo-location": "~57.0.22",
@@ -22,7 +23,8 @@
     "react-native": "0.86.3",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
-    "react-native-web": "^0.21.2"
+    "react-native-web": "^0.21.2",
+    "react-native-webview": "13.16.1"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
@@ -35,15 +37,15 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "test:search": "node tests/search.test.mjs",
+    "test:details": "firebase emulators:exec --config ../firebase.auth-test.json --project demo-lala-auth --only auth,firestore \"node tests/guesthouse-details.test.mjs\"",
+    "test:auth": "firebase emulators:exec --config ../firebase.auth-test.json --project demo-lala-auth --only auth,firestore \"node tests/customer-auth.test.mjs\"",
+    "test:browse": "firebase emulators:exec --config ../firebase.auth-test.json --project demo-lala-auth --only auth,firestore \"node tests/guesthouses.test.mjs\"",
+    "test:engagement": "firebase emulators:exec --config ../firebase.auth-test.json --project demo-lala-auth --only auth,firestore \"node tests/customer-engagement.test.mjs\"",
     "test:smart": "node tests/smart-search.test.mjs",
     "test:features": "node tests/nearby-similar-compare.test.mjs",
     "test:recent": "node tests/recently-viewed.test.mjs",
     "test:status": "node tests/listing-status.test.mjs",
-    "test:theme": "node tests/theme.test.mjs",
-    "test:details": "firebase emulators:exec --config ../firebase.auth-test.json --project demo-lala-auth --only auth,firestore \"node tests/guesthouse-details.test.mjs\"",
-    "test:auth": "firebase emulators:exec --config ../firebase.auth-test.json --project demo-lala-auth --only auth,firestore \"node tests/customer-auth.test.mjs\"",
-    "test:browse": "firebase emulators:exec --config ../firebase.auth-test.json --project demo-lala-auth --only auth,firestore \"node tests/guesthouses.test.mjs\"",
-    "test:engagement": "firebase emulators:exec --config ../firebase.auth-test.json --project demo-lala-auth --only auth,firestore \"node tests/customer-engagement.test.mjs\""
+    "test:theme": "node tests/theme.test.mjs"
   },
   "private": true
 }

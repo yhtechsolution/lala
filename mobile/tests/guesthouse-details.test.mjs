@@ -67,6 +67,10 @@ assert.equal(mapped.location.lat, -19.98);
 assert.equal(mapped.numberOfRooms, 6);
 assert.equal(mapped.houseRules, fixture.houseRules);
 assert.equal(
+  mapGuesthouseDetails('suspended', { ...fixture, status: 'suspended' }),
+  null,
+);
+assert.equal(
   mapGuesthouseDetails('bad', { name: 'bad', pricePerNight: -1 }),
   null,
 );
@@ -138,6 +142,10 @@ try {
   await write({ ...fixture, name: 'Updated House', pricePerNight: 650 });
   await waitFor(() => latest?.name === 'Updated House');
   assert.equal(latest.pricePerNight, 650);
+  await write({ ...fixture, status: 'suspended' });
+  await waitFor(() => latest === null);
+  await write({ ...fixture, status: 'active' });
+  await waitFor(() => latest?.name === fixture.name);
   await write(null);
   await waitFor(() => latest === null);
   let invalid = 'unset';
