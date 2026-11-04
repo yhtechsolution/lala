@@ -15,9 +15,18 @@ import { getApp } from "firebase/app";
 import { getFirebase } from "./firebase";
 import type { Guesthouse } from "./guesthouses";
 
+/** A problem the admin can fix (missing name, empty text, unusable reply). Its message is
+ * already written for them, so it is shown exactly as it is instead of the generic AI error. */
+export class AiInputError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AiInputError";
+  }
+}
+
 /** Model name is configurable because Google retires and adds models over time. */
-const MODEL_NAME: string = import.meta.env["VITE_GEMINI_MODEL"] || "gemini-2.5-flash";
-const REQUEST_TIMEOUT_MS = 20_000;
+const MODEL_NAME: string = import.meta.env["VITE_GEMINI_MODEL"] || "gemini-3.5-flash-lite";
+const REQUEST_TIMEOUT_MS = 60_000;
 
 export const MAX_DESCRIPTION_LENGTH = 700;
 export const MAX_AMENITIES = 12;
@@ -111,13 +120,13 @@ export function parseListingDraft(raw: string): ListingDraft {
   try {
     data = JSON.parse(cleaned);
   } catch {
-    throw new Error("The AI reply was not in the expected format. Please try again.");
+    throw new AiInputError("The AI reply was not in the expected format. Please try again.");
   }
   const record = (data && typeof data === "object" ? data : {}) as Record<string, unknown>;
   const description = plain(typeof record["description"] === "string" ? record["description"] : "")
     .slice(0, MAX_DESCRIPTION_LENGTH)
     .trim();
-  if (!description) throw new Error("The AI reply was empty. Please try again.");
+  if (!description) throw new AiInputError("The AI reply was empty. Please try again.");
   const amenities = Array.isArray(record["amenities"])
     ? dedupeAmenities(record["amenities"].filter((v): v is string => typeof v === "string")).slice(
         0,
@@ -152,7 +161,7 @@ export function cleanTranslation(raw: string): string {
     .replace(/^["“”']+|["“”']+$/g, "")
     .slice(0, MAX_TRANSLATION_LENGTH)
     .trim();
-  if (!text) throw new Error("The AI reply was empty. Please try again.");
+  if (!text) throw new AiInputError("The AI reply was empty. Please try again.");
   return text;
 }
 
@@ -240,7 +249,7 @@ export function buildInsightPrompt(stats: DashboardStats): string {
 
 export function cleanInsight(raw: string): string {
   const text = plain(raw).slice(0, 700);
-  if (!text) throw new Error("The AI reply was empty. Please try again.");
+  if (!text) throw new AiInputError("The AI reply was empty. Please try again.");
   return text;
 }
 
@@ -250,6 +259,7 @@ export function cleanInsight(raw: string): string {
 
 /** Plain-language messages for the failures an admin can actually fix. */
 export function aiErrorMessage(error: unknown): string {
+  if (error instanceof AiInputError) return error.message;
   const code = String((error as { code?: string })?.code ?? "");
   const message = error instanceof Error ? error.message : "";
   const text = `${code} ${message}`.toLowerCase();
@@ -259,6 +269,8 @@ export function aiErrorMessage(error: unknown): string {
     return "The free AI limit was reached. Wait a minute and try again.";
   if (text.includes("403") || text.includes("app check") || text.includes("permission"))
     return "AI access was refused. Check the App Check and API key settings in Firebase.";
+  if (text.includes("abort") || text.includes("timeout"))
+    return "The AI took too long to answer. Try again, or switch to a faster model.";
   if (text.includes("fetch-error") || text.includes("network") || text.includes("failed to fetch"))
     return "Could not reach the AI service. Check your connection and try again.";
   if (text.includes("not in the expected format") || text.includes("reply was empty"))
@@ -280,7 +292,7 @@ async function loadSdk() {
 /** Draft a description and amenity list from facts the admin supplied. */
 export async function generateListingDraft(input: ListingDraftInput): Promise<ListingDraft> {
   const problem = listingDraftProblem(input);
-  if (problem) throw new Error(problem);
+  if (problem) throw new AiInputError(problem);
   const { sdk, ai } = await loadSdk();
   const model = sdk.getGenerativeModel(
     ai,
@@ -305,7 +317,7 @@ export async function generateListingDraft(input: ListingDraftInput): Promise<Li
 
 /** Summarise the dashboard figures in a few sentences. */
 export async function generateInsight(stats: DashboardStats): Promise<string> {
-  if (!stats.totalGuesthouses) throw new Error("Add at least one guesthouse first.");
+  if (!stats.totalGuesthouses) throw new AiInputError("Add at least one guesthouse first.");
   const { sdk, ai } = await loadSdk();
   const model = sdk.getGenerativeModel(
     ai,
@@ -318,7 +330,7 @@ export async function generateInsight(stats: DashboardStats): Promise<string> {
 
 /** Translate a listing description into Setswana. The admin must review it before saving. */
 export async function translateToSetswana(text: string): Promise<string> {
-  if (!text.trim()) throw new Error("Write the English description first.");
+  if (!text.trim()) throw new AiInputError("Write the English description first.");
   const { sdk, ai } = await loadSdk();
   const model = sdk.getGenerativeModel(
     ai,

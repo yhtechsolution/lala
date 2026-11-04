@@ -36,6 +36,11 @@ describe("statusOf", () => {
     expect(statusOf({ status: "published" })).toBe("published");
   });
 
+  it("reads the older active and suspended values as published and hidden", () => {
+    expect(statusOf({ status: "active" })).toBe("published");
+    expect(statusOf({ status: "suspended" })).toBe("hidden");
+  });
+
   it("recognises draft and hidden, and treats anything else as hidden", () => {
     expect(statusOf({ status: "draft" })).toBe("draft");
     expect(statusOf({ status: "hidden" })).toBe("hidden");

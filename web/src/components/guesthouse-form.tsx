@@ -3,6 +3,8 @@ import { useRef, useState } from "react";
 import type { Guesthouse, GuesthouseInput } from "@/lib/guesthouses";
 import { saveGuesthouse } from "@/lib/guesthouses";
 import { firebaseError } from "@/lib/firebase";
+import { ImageUploadInput } from "@/components/image-upload-field";
+import { uploadsConfigured } from "@/lib/cloudinary";
 import {
   GUESTHOUSE_STATUSES,
   STATUS_LABELS,
@@ -26,6 +28,8 @@ export function GuesthouseForm({
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  // Photos are uploaded to Cloudinary when it is configured; otherwise admins paste HTTPS URLs.
+  const uploads = uploadsConfigured();
   const [aiBusy, setAiBusy] = useState(false);
   const [aiError, setAiError] = useState("");
   const [aiDrafted, setAiDrafted] = useState(false);
@@ -46,6 +50,7 @@ export function GuesthouseForm({
       if (field) field.value = translated;
       setTnDrafted(true);
     } catch (failure) {
+      console.error("AI error:", failure);
       setTnError(aiErrorMessage(failure));
     } finally {
       setTnBusy(false);
@@ -82,6 +87,7 @@ export function GuesthouseForm({
         amenities.value = mergeAmenities(existingAmenities, draft.amenities).join(", ");
       setAiDrafted(true);
     } catch (failure) {
+      console.error("AI error:", failure);
       setAiError(aiErrorMessage(failure));
     } finally {
       setAiBusy(false);
@@ -159,12 +165,20 @@ export function GuesthouseForm({
           />
           <Field name="phone" label="Contact phone" value={item?.contact?.phone} />
           <Field name="email" label="Contact email" type="email" value={item?.contact?.email} />
-          <Field
-            name="logoUrl"
-            label="Guesthouse logo URL (HTTPS)"
-            type="url"
-            value={item?.logoUrl}
-          />
+          {uploads ? (
+            <ImageUploadInput
+              name="logoUrl"
+              label="Guesthouse logo"
+              initial={item?.logoUrl ? [item.logoUrl] : []}
+            />
+          ) : (
+            <Field
+              name="logoUrl"
+              label="Guesthouse logo URL (HTTPS)"
+              type="url"
+              value={item?.logoUrl}
+            />
+          )}
           <Field
             name="amenities"
             label="Amenities (comma separated)"
@@ -226,16 +240,25 @@ export function GuesthouseForm({
               </p>
             )}
           </div>
-          <label className="text-sm space-y-1">
-            Gallery URLs (one HTTPS URL per line)
-            <textarea
+          {uploads ? (
+            <ImageUploadInput
               name="galleryUrls"
-              required
-              defaultValue={item?.galleryUrls?.join("\n")}
-              className="block w-full rounded-md border p-2 bg-background"
-              rows={4}
+              label="Gallery photos"
+              initial={item?.galleryUrls ?? []}
+              multiple
             />
-          </label>
+          ) : (
+            <label className="text-sm space-y-1">
+              Gallery URLs (one HTTPS URL per line)
+              <textarea
+                name="galleryUrls"
+                required
+                defaultValue={item?.galleryUrls?.join("\n")}
+                className="block w-full rounded-md border p-2 bg-background"
+                rows={4}
+              />
+            </label>
+          )}
           <div className="sm:col-span-2 rounded-lg border border-dashed p-4 space-y-3">
             <label className="text-sm space-y-1 block">
               Notes for the AI (not saved)
@@ -273,8 +296,8 @@ export function GuesthouseForm({
           </div>
         </fieldset>
         <p className="text-xs text-muted-foreground">
-          Saving makes this listing publicly readable by the mobile app. The shared schema has no
-          draft/published field.
+          Only listings set to Published are shown to customers in the mobile app. Drafts and
+          suspended listings stay in the database but are hidden.
         </p>
         {error && (
           <p role="alert" className="text-red-700">

@@ -15,6 +15,7 @@ export function AiInsight({ items }: { items: Guesthouse[] }) {
     try {
       setSummary(await generateInsight(stats));
     } catch (failure) {
+      console.error("AI error:", failure);
       setError(aiErrorMessage(failure));
     } finally {
       setBusy(false);

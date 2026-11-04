@@ -15,15 +15,15 @@ import {
   MapPin,
   UserCircle,
   LogOut,
+  ChevronDown,
 } from "lucide-react";
 
 /** Only implemented routes appear in navigation; each entry has an accessible text label. */
 const navItems = [
   { name: "Discovery map", path: "/discovery", icon: MapPin },
-  { name: "My account", path: "/account", icon: UserCircle },
   { name: "Dashboard", path: "/", icon: LayoutDashboard },
   { name: "Guesthouses", path: "/listings", icon: Home },
-  { name: "Administrators", path: "/users", icon: Users },
+  { name: "Users", path: "/users", icon: Users },
   { name: "Communications", path: "/communications", icon: MessageSquare },
   { name: "Analytics", path: "/analytics", icon: BarChart3 },
 ];
@@ -39,6 +39,7 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
   const [remember, setRemember] = useState(false);
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -257,26 +258,34 @@ export function PortalShell({ children }: { children: React.ReactNode }) {
             </Link>
             <div className="h-8 w-px bg-stone-200"></div>
 
-            {/* User Profile & Logout */}
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-3">
-                <div className="text-right hidden sm:block">
-                  <p className="text-sm font-semibold text-stone-800 leading-none mb-1">
-                    {displayName}
-                  </p>
-                  <p className="text-xs text-stone-500 leading-none">Administrator</p>
-                </div>
-                <div className="h-9 w-9 rounded-full bg-stone-200 flex items-center justify-center font-bold text-stone-600 border border-stone-300">
-                  {displayName.slice(0, 2).toUpperCase()}
-                </div>
-              </div>
+            {/* Profile menu: account settings are accessed from the top-right avatar. */}
+            <div className="relative">
               <button
-                onClick={handleLogout}
-                title="Log out"
-                className="p-2 text-stone-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                type="button"
+                aria-haspopup="menu"
+                aria-expanded={profileMenuOpen}
+                onClick={() => setProfileMenuOpen((open) => !open)}
+                className="flex items-center gap-3 rounded-md p-1.5 hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-stone-500"
               >
-                <LogOut size={18} />
+                <span className="text-right hidden sm:block">
+                  <span className="block text-sm font-semibold text-stone-800 leading-none mb-1">{displayName}</span>
+                  <span className="block text-xs text-stone-500 leading-none">Administrator</span>
+                </span>
+                <span className="h-9 w-9 rounded-full bg-stone-200 flex items-center justify-center font-bold text-stone-600 border border-stone-300">
+                  {displayName.slice(0, 2).toUpperCase() || <UserCircle size={18} />}
+                </span>
+                <ChevronDown size={16} className="text-stone-500" />
               </button>
+              {profileMenuOpen && (
+                <div role="menu" className="absolute right-0 top-full mt-2 z-30 w-52 rounded-lg border border-stone-200 bg-white p-2 shadow-lg">
+                  <Link role="menuitem" to="/account" onClick={() => setProfileMenuOpen(false)} className="flex items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-stone-100">
+                    <UserCircle size={16} /> Account settings
+                  </Link>
+                  <button role="menuitem" onClick={() => { setProfileMenuOpen(false); void handleLogout(); }} className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-red-700 hover:bg-red-50">
+                    <LogOut size={16} /> Sign out
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>

@@ -1,20 +1,27 @@
 /** Firestore data contract shared with the mobile team. Formatting belongs in the UI. */
-import { addDoc, collection, deleteDoc, doc, serverTimestamp, updateDoc } from "firebase/firestore";
+import { addDoc, collection, doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { getFirebase } from "./firebase";
 /** Who can see a listing in the mobile app: only "published" ones. Drafts are being prepared,
- * hidden ones were taken down temporarily. Listings created before this field existed have
- * no status and count as published. */
+ * hidden (suspended) ones were taken down but keep their record, ratings and history.
+ * Listings created before this field existed have no status and count as published.
+ * Older builds wrote "active" and "suspended"; they are read as published and hidden. */
 export const GUESTHOUSE_STATUSES = ["published", "draft", "hidden"] as const;
 export type GuesthouseStatus = (typeof GUESTHOUSE_STATUSES)[number];
 export const STATUS_LABELS: Record<GuesthouseStatus, string> = {
   published: "Published",
   draft: "Draft",
-  hidden: "Hidden",
+  hidden: "Suspended",
 };
-/** Missing means published (older listings); an unrecognised value is treated as hidden. */
+/** Missing or "active" means published (older listings); "suspended" and anything unrecognised
+ * is treated as hidden. */
 export function statusOf(item: { status?: string | undefined }): GuesthouseStatus {
-  if (item.status === undefined || item.status === "published") return "published";
+  if (item.status === undefined || item.status === "published" || item.status === "active")
+    return "published";
   return item.status === "draft" ? "draft" : "hidden";
+}
+/** True when customers can see the listing (used by the discovery map and the status filter). */
+export function isGuesthouseActive(item: { status?: string | undefined }) {
+  return statusOf(item) === "published";
 }
 export type GuesthouseInput = {
   name: string;
@@ -39,6 +46,9 @@ export type Guesthouse = GuesthouseInput & {
   ratingSum: number;
   createdAt?: { toDate: () => Date };
   createdBy: string;
+  /** Written whenever an admin suspends, reactivates or publishes a listing. */
+  statusChangedAt?: { toDate: () => Date };
+  statusChangedBy?: string;
 };
 /** Reject invalid values before a write, including requests from outside the form. */
 export function validateGuesthouse(data: GuesthouseInput) {
@@ -84,13 +94,16 @@ export async function saveGuesthouse(data: GuesthouseInput, id?: string) {
   validateGuesthouse(data);
   const { db, auth } = getFirebase();
   if (!auth.currentUser) throw new Error("Sign in before saving.");
-  const payload = {
-    ...data,
-    name: data.name.trim(),
-    city: data.city.trim(),
-    nameLower: data.name.trim().toLowerCase(),
-    cityLower: data.city.trim().toLowerCase(),
-  };
+  // Firestore rejects undefined values, so optional fields that were left out are dropped.
+  const payload = Object.fromEntries(
+    Object.entries({
+      ...data,
+      name: data.name.trim(),
+      city: data.city.trim(),
+      nameLower: data.name.trim().toLowerCase(),
+      cityLower: data.city.trim().toLowerCase(),
+    }).filter(([, value]) => value !== undefined),
+  );
   // Only editable fields are updated. Rating aggregates, creator metadata and
   // optional fields owned by other team members survive edits and concurrent ratings.
   if (id) return updateDoc(doc(db, "guesthouses", id), payload);
@@ -101,15 +114,19 @@ export async function saveGuesthouse(data: GuesthouseInput, id?: string) {
     ratingSum: 0,
     createdAt: serverTimestamp(),
     createdBy: auth.currentUser.uid,
+    // A new listing is published unless the admin chose draft or hidden in the form.
+    status: data.status ?? "published",
   });
 }
-export async function removeGuesthouse(id: string) {
-  await deleteDoc(doc(getFirebase().db, "guesthouses", id));
-}
-/** Publish, hide or return a listing to draft without touching anything else. */
+/** Publish, suspend or return a listing to draft. The record, ratings and favourites are kept,
+ * and who made the change and when is stored with it. */
 export async function setGuesthouseStatus(id: string, status: GuesthouseStatus) {
   if (!GUESTHOUSE_STATUSES.includes(status)) throw new Error("Choose published, draft or hidden.");
   const { auth, db } = getFirebase();
   if (!auth.currentUser) throw new Error("Sign in before changing a listing.");
-  await updateDoc(doc(db, "guesthouses", id), { status });
+  await updateDoc(doc(db, "guesthouses", id), {
+    status,
+    statusChangedAt: serverTimestamp(),
+    statusChangedBy: auth.currentUser.uid,
+  });
 }

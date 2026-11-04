@@ -1,12 +1,12 @@
-/** Live listing directory with schema-compatible create/edit/delete operations. */
-import { useState } from "react";
+/** Live listing directory with schema-compatible create/edit/suspend operations. Listings are
+ * never deleted from here: suspending keeps the record, ratings and favourites. */
+import { useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeading } from "@/components/portal-shell";
 import { GuesthouseForm } from "@/components/guesthouse-form";
 import { useGuesthouses } from "@/lib/live-guesthouses";
 import {
   GUESTHOUSE_STATUSES,
-  removeGuesthouse,
   setGuesthouseStatus,
   STATUS_LABELS,
   statusOf,
@@ -20,10 +20,21 @@ function Guesthouses() {
   const [query, setQuery] = useState("");
   const [editor, setEditor] = useState<Guesthouse | "new" | null>(null);
   const [failure, setFailure] = useState("");
-  const [deleting, setDeleting] = useState<string | null>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
   const [statusFilter, setStatusFilter] = useState<GuesthouseStatus | "all">("all");
   const [changing, setChanging] = useState<string | null>(null);
+  useEffect(() => {
+    if (editor) editorRef.current?.scrollIntoView?.({ behavior: "smooth", block: "start" });
+  }, [editor]);
   async function changeStatus(item: Guesthouse, status: GuesthouseStatus) {
+    const suspending = statusOf(item) === "published" && status === "hidden";
+    if (
+      suspending &&
+      !window.confirm(
+        `Suspend ${item.name}? It will no longer appear in the mobile app or the discovery map, but its record, ratings and favourites are kept.`,
+      )
+    )
+      return;
     setChanging(item.id);
     setFailure("");
     try {
@@ -32,24 +43,6 @@ function Guesthouses() {
       setFailure(firebaseError(e));
     } finally {
       setChanging(null);
-    }
-  }
-  async function remove(item: Guesthouse) {
-    if (
-      !window.confirm(
-        `Delete ${item.name}? Its listing will be removed from the shared database. Related favourites, ratings and stored images are not deleted.`,
-      )
-    )
-      return;
-    setDeleting(item.id);
-    setFailure("");
-    try {
-      await removeGuesthouse(item.id);
-      if (editor !== "new" && editor?.id === item.id) setEditor(null);
-    } catch (e) {
-      setFailure(firebaseError(e));
-    } finally {
-      setDeleting(null);
     }
   }
   const counts = GUESTHOUSE_STATUSES.map(
@@ -65,7 +58,7 @@ function Guesthouses() {
       <PageHeading
         eyebrow="Shared Firebase database"
         title="Guesthouses"
-        description="Manage the listings customers can browse."
+        description="Manage the listings customers can browse. Suspended listings stay in the database for history."
         action={
           <button
             className="bg-primary text-primary-foreground rounded-md px-4 py-2"
@@ -75,13 +68,15 @@ function Guesthouses() {
           </button>
         }
       />
-      {editor && (
-        <GuesthouseForm
-          key={editor === "new" ? "new" : editor.id}
-          item={editor === "new" ? undefined : editor}
-          close={() => setEditor(null)}
-        />
-      )}
+      <div ref={editorRef}>
+        {editor && (
+          <GuesthouseForm
+            key={editor === "new" ? "new" : editor.id}
+            item={editor === "new" ? undefined : editor}
+            close={() => setEditor(null)}
+          />
+        )}
+      </div>
       <label className="block text-sm mb-5">
         Search by name or city
         <input
@@ -106,7 +101,7 @@ function Guesthouses() {
         </select>
       </label>
       <p className="text-sm text-muted-foreground mb-5">
-        Only published listings are shown to customers in the mobile app.
+        Only published listings are shown to customers in the mobile app and on the discovery map.
       </p>
       {(error || failure) && (
         <p role="alert" className="text-red-700 mb-4">
@@ -148,7 +143,7 @@ function Guesthouses() {
               <p className="text-sm mt-2">
                 {Number(item.averageRating || 0).toFixed(1)} ★ · {item.ratingCount || 0} ratings
               </p>
-              <div className="flex gap-4 mt-4">
+              <div className="flex flex-wrap gap-4 mt-4">
                 <button className="underline" onClick={() => setEditor(item)}>
                   Edit
                 </button>
@@ -162,15 +157,10 @@ function Guesthouses() {
                   {changing === item.id
                     ? "Saving…"
                     : statusOf(item) === "published"
-                      ? "Hide"
-                      : "Publish"}
-                </button>
-                <button
-                  className="text-red-700 underline"
-                  disabled={deleting !== null}
-                  onClick={() => remove(item)}
-                >
-                  {deleting === item.id ? "Deleting…" : "Delete"}
+                      ? "Suspend"
+                      : statusOf(item) === "hidden"
+                        ? "Reactivate"
+                        : "Publish"}
                 </button>
               </div>
             </div>

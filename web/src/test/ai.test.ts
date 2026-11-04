@@ -1,6 +1,7 @@
 /** Tests for the pure parts of the AI helpers. No network or Firebase calls are made. */
 import { describe, expect, it } from "vitest";
 import {
+  AiInputError,
   aiErrorMessage,
   buildInsightPrompt,
   buildListingPrompt,
@@ -9,12 +10,14 @@ import {
   cleanTranslation,
   computeDashboardStats,
   dedupeAmenities,
+  generateListingDraft,
   listingDraftProblem,
   MAX_AMENITIES,
   MAX_DESCRIPTION_LENGTH,
   MAX_TRANSLATION_LENGTH,
   mergeAmenities,
   parseListingDraft,
+  translateToSetswana,
 } from "@/lib/ai";
 
 const input = {
@@ -158,6 +161,9 @@ describe("error messages", () => {
     expect(aiErrorMessage({ code: "AI/api-not-enabled" })).toMatch(/not enabled/);
     expect(aiErrorMessage(new Error("[429] quota exceeded"))).toMatch(/limit/);
     expect(aiErrorMessage(new Error("403 App Check token invalid"))).toMatch(/App Check/);
+    expect(aiErrorMessage(new Error("The operation was aborted due to timeout"))).toMatch(
+      /took too long/,
+    );
     expect(aiErrorMessage({ code: "AI/fetch-error" })).toMatch(/connection/);
     expect(aiErrorMessage(new Error("boom"))).toMatch(/could not complete/);
   });
@@ -185,5 +191,24 @@ describe("Setswana translation", () => {
     expect(cleanTranslation('"**Lodge** e e monate."')).toBe("Lodge e e monate.");
     expect(() => cleanTranslation("   ")).toThrow(/empty/);
     expect(cleanTranslation("a".repeat(5000)).length).toBeLessThanOrEqual(MAX_TRANSLATION_LENGTH);
+  });
+});
+
+describe("input problems reach the admin as written", () => {
+  it("shows the specific message instead of the generic AI error", async () => {
+    const failure = await generateListingDraft({
+      name: "",
+      city: "",
+      country: "Botswana",
+      amenities: [],
+      notes: "",
+    }).catch((error: unknown) => error);
+    expect(failure).toBeInstanceOf(AiInputError);
+    expect(aiErrorMessage(failure)).toBe("Enter the guesthouse name and city first.");
+  });
+  it("explains what is missing from a translation or summary request", async () => {
+    expect(aiErrorMessage(await translateToSetswana("  ").catch((e: unknown) => e))).toMatch(
+      /English description first/,
+    );
   });
 });
